@@ -6,12 +6,13 @@ import (
 	"net/http"
 )
 
-const Success = 200      //正常
-const Failed = 500       //失败
-const IoFailed = 501     //IO错误
-const ParamsError = 4001 //参数错误
-const NotFound = 4004    //记录不存在
-const UnAuthorized = 401 //未授权
+const (
+	Success      = 200  //正常
+	Failed       = 500  //失败
+	ParamsError  = 4001 //参数错误
+	NotFound     = 4004 //记录不存在
+	UnAuthorized = 401  //未授权
+)
 
 type Controller struct{}
 

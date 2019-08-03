@@ -3,11 +3,11 @@ package controller
 import (
 	"gen/model"
 	"gen/service"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	logs "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
-	"unicode/utf8"
 )
 
 type articleController struct {
@@ -27,30 +27,35 @@ var ArticleController = &articleController{
 
 // 添加文章
 func (a articleController) AddArticle(c *gin.Context) {
-	log.Debug("add article")
+	logs.Debug("add article")
 	var (
 		title, _   = c.GetPostForm("title")
 		content, _ = c.GetPostForm("content")
 	)
-	if utf8.RuneCountInString(title) < 1 || utf8.RuneCountInString(title) > 100 {
+	if !govalidator.StringLength(title, "1", "100") {
 		a.failed(c, ParamsError, "标题长度1-100")
 		return
 	}
-	if utf8.RuneCountInString(content) < 1 || utf8.RuneCountInString(content) > 2000 {
+	if !govalidator.StringLength(content, "1", "2000") {
 		a.failed(c, ParamsError, "内容长度1-2000")
 		return
+	}
+	userId, exists := c.Get("userId")
+	if !exists {
+		a.failed(c, UnAuthorized, "未登录")
 	}
 	var article = &model.Article{
 		Title:   title,
 		Content: content,
-		UserID:  uint(c.GetInt("userId")),
+		UserID:  userId.(uint),
 	}
+	println(c.GetInt("userId"))
 	if id, err := a.articleService.New(article); err != nil {
-		log.Error("add article failed, error: " + err.Error())
+		logs.Errorf("add article failed, error: " + err.Error())
 		a.failed(c, Failed, "添加文章失败")
 		return
 	} else {
-		log.Debugf("add article success，id:%d", id)
+		logs.Debugf("add article success，id:%d", id)
 		a.success(c, "添加文章成功", map[string]interface{}{"id": id})
 		return
 	}
@@ -65,7 +70,7 @@ func (a articleController) GetArticle(c *gin.Context) {
 	}
 	article, err := a.articleService.Get(uint(id))
 	if err != nil {
-		log.Errorf("get article failed，id:%d, error:%s", id, err.Error())
+		logs.Errorf("get article failed，id:%d, error:%s", id, err.Error())
 		a.failed(c, Failed, "获取文章失败")
 		return
 	}
@@ -73,7 +78,7 @@ func (a articleController) GetArticle(c *gin.Context) {
 		a.failed(c, NotFound, "文章不存在")
 		return
 	} else {
-		log.Debugf("get article success，id:%d", id)
+		logs.Debugf("get article success，id:%d", id)
 		a.success(c, "ok", resultWrap{
 			Article:   article,
 			CreatedAt: time.Unix(int64(article.CreatedAt), 0).Format("2006-01-02 15:04:05"),
@@ -90,7 +95,7 @@ func (a articleController) ListArticle(c *gin.Context) {
 	}
 	articles, err := a.articleService.List(page)
 	if err != nil {
-		log.Errorf("list article failed，error:%s", err.Error())
+		logs.Errorf("list article failed，error:%s", err.Error())
 		a.failed(c, Failed, "获取文章列表失败")
 		return
 	} else {
@@ -102,7 +107,12 @@ func (a articleController) ListArticle(c *gin.Context) {
 				UpdatedAt: time.Unix(int64(article.UpdatedAt), 0).Format("2006-01-02 15:04:05"),
 			})
 		}
-		a.success(c, "ok", result)
+		if len(result) != 0 {
+			a.success(c, "ok", result)
+		} else {
+			// 解决列表为空时，data为null的问题
+			a.success(c, "ok", []string{})
+		}
 		return
 	}
 }
@@ -116,11 +126,11 @@ func (a articleController) DelArticle(c *gin.Context) {
 	}
 	_, err = a.articleService.Del(uint(id))
 	if err != nil {
-		log.Errorf("del article failed，id:%d, error:%s", id, err.Error())
+		logs.Errorf("del article failed，id:%d, error:%s", id, err.Error())
 		a.failed(c, Failed, "删除失败")
 		return
 	} else {
-		log.Debugf("del article success，id:%d", id)
+		logs.Debugf("del article success，id:%d", id)
 		a.success(c, "删除成功", map[string]interface{}{"id": id})
 	}
 }

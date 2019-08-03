@@ -44,6 +44,9 @@ func initDB() {
 	}
 	db.DB().SetMaxIdleConns(maxIdleConns)
 	db.DB().SetMaxOpenConns(maxOpenConns)
+	if Conf.String("APP_DEBUG") == "true" {
+		db.LogMode(true)
+	}
 	DB = db
 	log.Println("init db connection success")
 }

@@ -8,11 +8,18 @@ import (
 
 func Route(Router *gin.Engine) {
 	Router.GET("/", BaseController.Index)
-	api := Router.Group("/api/v1").Use(middleware.Auth())
+
+	article := Router.Group("/api/v1/articles").Use(middleware.Auth())
 	{
-		api.GET("/articles", ArticleController.ListArticle)
-		api.GET("/articles/:id", ArticleController.GetArticle)
-		api.POST("/articles", ArticleController.AddArticle)
-		api.DELETE("/articles/:id", ArticleController.DelArticle)
+		article.GET("/", ArticleController.ListArticle)
+		article.GET("/:id", ArticleController.GetArticle)
+		article.POST("/", ArticleController.AddArticle)
+		article.DELETE("/:id", ArticleController.DelArticle)
+	}
+
+	user := Router.Group("/api/v1/user")
+	{
+		user.POST("/register", UserController.Register)
+		user.POST("/login", UserController.Login)
 	}
 }

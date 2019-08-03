@@ -2,6 +2,7 @@ package service
 
 import (
 	"gen/model"
+	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -12,36 +13,37 @@ type ArticleService interface {
 	Del(id uint) (bool, error)
 }
 
-type service struct{}
+type articleService struct{}
 
 func NewArticleService() ArticleService {
-	return &service{}
+	return &articleService{}
 }
 
 const PageSize = 5
 
-func (service) New(article *model.Article) (uint, error) {
+func (articleService) New(article *model.Article) (uint, error) {
 	article.CreatedAt = uint(time.Now().Unix())
 	article.UpdatedAt = uint(time.Now().Unix())
 	err := model.DB.Create(&article).Error
 	if err != nil {
-		return 0, model.DB.Error
+		return 0, err
 	}
 	return article.ID, nil
 }
-func (service) Get(id uint) (*model.Article, error) {
+func (articleService) Get(id uint) (*model.Article, error) {
 	var article model.Article
-	err := model.DB.First(&article).Where("id = ?", id).Error
-	if err != nil {
+	err := model.DB.Where("id = ?", id).Find(&article).Error
+	if err != nil && !gorm.IsRecordNotFoundError(err) {
 		return nil, err
 	}
 	return &article, nil
 }
 
-func (service) List(page int) ([]*model.Article, error) {
+func (articleService) List(page int) ([]*model.Article, error) {
 	var article []*model.Article
+	offset := (page - 1) * PageSize
 	err := model.DB.Where("status = 0").Limit(PageSize).
-		Offset(page).Order("id desc").
+		Offset(offset).Order("id desc").
 		Find(&article).Error
 	if err != nil {
 		return nil, err
@@ -49,7 +51,7 @@ func (service) List(page int) ([]*model.Article, error) {
 	return article, nil
 }
 
-func (service) Del(id uint) (bool, error) {
+func (articleService) Del(id uint) (bool, error) {
 	err := model.DB.Table("articles").Where("id = ?", id).
 		Updates(map[string]interface{}{"status": 1, "updated_at": time.Now().Unix()}).Error
 	if err != nil {

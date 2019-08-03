@@ -33,10 +33,12 @@ CREATE TABLE `users`
     `name`       varchar(50)      NOT NULL COMMENT '用户名',
     `email`      varchar(50)      NOT NULL COMMENT '邮箱',
     `password`   varchar(20)      NOT NULL COMMENT '密码',
+    `salt`       varchar(100)     NOT NULL COMMENT '盐',
     `created_at` int(11) unsigned NOT NULL COMMENT '创建时间',
     `updated_at` int(11) unsigned NOT NULL COMMENT '更新时间',
     `status`     int(11) unsigned NOT NULL COMMENT '状态，0正常，1删除',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `idx_email` (`email`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
