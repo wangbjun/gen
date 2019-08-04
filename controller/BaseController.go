@@ -12,6 +12,7 @@ const (
 	ParamsError  = 4001 //参数错误
 	NotFound     = 4004 //记录不存在
 	UnAuthorized = 401  //未授权
+	NotLogin     = 405  //未登录
 )
 
 type Controller struct{}
@@ -40,4 +41,13 @@ func (*Controller) failed(ctx *gin.Context, code int, msg string) {
 		"code": code,
 		"msg":  msg,
 	})
+}
+
+// 获取当前用户ID
+func (*Controller) getUserId(ctx *gin.Context) uint {
+	userId, exists := ctx.Get("userId")
+	if exists {
+		return userId.(uint)
+	}
+	return 0
 }

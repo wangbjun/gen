@@ -10,6 +10,12 @@ import (
 	"io"
 )
 
+const (
+	StatusOK  = 0
+	StatusDel = 1
+	PageSize  = 5
+)
+
 //打印元素
 func DD(obj ...interface{}) {
 	fmt.Printf("%v\n", obj)

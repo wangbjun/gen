@@ -35,11 +35,10 @@ func (u userController) Register(c *gin.Context) {
 	}
 	token, err := u.userService.Register(name, email, password)
 	if err != nil {
-		if err == service.UserExisted {
-			logs.Errorf("user register failed, error: %s", err.Error())
+		logs.Errorf("user register failed, error: %s", err.Error())
+		if _, ok := err.(service.UserError); ok {
 			u.failed(c, ParamsError, err.Error())
 		} else {
-			logs.Errorf("user register failed, error: %s", err.Error())
 			u.failed(c, Failed, "注册失败")
 		}
 	} else {
@@ -63,7 +62,8 @@ func (u userController) Login(c *gin.Context) {
 	}
 	token, err := u.userService.Login(email, password)
 	if err != nil {
-		if err == service.UserNotExisted || err == service.PasswordWrong {
+		logs.Errorf("user register failed, error: %s", err.Error())
+		if _, ok := err.(service.UserError); ok {
 			u.failed(c, Failed, err.Error())
 		} else {
 			u.failed(c, Failed, "登录失败")
@@ -77,5 +77,8 @@ func (u userController) Login(c *gin.Context) {
 
 // 用户退出
 func (u userController) Logout(c *gin.Context) {
-
+	token := c.GetHeader("Authorization")
+	// TODO token加入黑名单
+	logs.Debugf("add token into blacklist, token:%s", token)
+	u.success(c, "ok", "")
 }

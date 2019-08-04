@@ -2,7 +2,7 @@ package model
 
 type Comment struct {
 	Base
-	UserID    uint
-	ArticleId string
-	Content   string
+	UserID    uint   `json:"user_id"`
+	ArticleId uint   `json:"article_id"`
+	Content   string `json:"content"`
 }

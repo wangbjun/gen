@@ -9,12 +9,14 @@ import (
 	"time"
 )
 
+type UserError error
+
 var (
-	UserSecret     = []byte("@fc6951544^f55c644!@0d")
-	UserExisted    = errors.New("邮箱已存在")
-	UserNotExisted = errors.New("邮箱不存在")
-	PasswordWrong  = errors.New("邮箱或密码错误")
-	LoginFailed    = errors.New("登录失败")
+	UserSecret               = []byte("@fc6951544^f55c644!@0d")
+	UserExisted    UserError = errors.New("邮箱已存在")
+	UserNotExisted UserError = errors.New("邮箱不存在")
+	PasswordWrong  UserError = errors.New("邮箱或密码错误")
+	LoginFailed    UserError = errors.New("登录失败")
 )
 
 type UserService interface {
