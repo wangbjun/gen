@@ -16,6 +16,7 @@ type ArticleService interface {
 	Del(id uint, userId uint) (bool, error)
 	AddView(id uint)
 	AddComment(id uint, userId uint, content string) (*model.Comment, error)
+	ListComment(id uint) ([]*model.Comment, error)
 }
 
 var (
@@ -140,6 +141,16 @@ func (a articleService) AddComment(id uint, userId uint, content string) (*model
 		return nil, err
 	} else {
 		return &comment, nil
+	}
+}
+
+func (a articleService) ListComment(id uint) ([]*model.Comment, error) {
+	var comments []*model.Comment
+	err := model.DB.Where("article_id = ? and status = 0", id).Find(&comments).Error
+	if err != nil {
+		return nil, err
+	} else {
+		return comments, nil
 	}
 }
 

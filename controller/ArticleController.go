@@ -209,6 +209,23 @@ func (a articleController) AddComment(c *gin.Context) {
 	return
 }
 
+// 评论列表
+func (a articleController) ListComment(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		a.failed(c, ParamsError, "id不能为空")
+		return
+	}
+	comments, err := a.articleService.ListComment(uint(id))
+	if err != nil {
+		logs.Errorf("get article list failed，error:%s", err.Error())
+		a.success(c, "ok", []string{})
+	} else {
+		a.success(c, "ok", comments)
+	}
+	return
+}
+
 func (a articleController) StopTheWorld() {
 	go service.StopAdd()
 	logs.Infof("stop the world,waiting for 3s")
