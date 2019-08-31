@@ -34,11 +34,17 @@ func init() {
 	saveTicker()
 }
 
-type ArticleError error
+type ArticleError struct {
+	error
+}
+
+func articleError(err string) ArticleError {
+	return ArticleError{errors.New(err)}
+}
 
 var (
-	ArticleNotFound  ArticleError = errors.New("文章不存在")
-	PermissionDenied ArticleError = errors.New("没有权限")
+	ArticleNotFound  = articleError("文章不存在")
+	PermissionDenied = articleError("没有权限")
 )
 
 func (a articleService) AddView(id uint) {

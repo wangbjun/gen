@@ -9,14 +9,20 @@ import (
 	"time"
 )
 
-type UserError error
+type UserError struct {
+	error
+}
+
+func userError(err string) UserError {
+	return UserError{errors.New(err)}
+}
 
 var (
-	UserSecret               = []byte("@fc6951544^f55c644!@0d")
-	UserExisted    UserError = errors.New("邮箱已存在")
-	UserNotExisted UserError = errors.New("邮箱不存在")
-	PasswordWrong  UserError = errors.New("邮箱或密码错误")
-	LoginFailed    UserError = errors.New("登录失败")
+	UserSecret     = []byte("@fc6951544^f55c644!@0d")
+	UserExisted    = userError("邮箱已存在")
+	UserNotExisted = userError("邮箱不存在")
+	PasswordWrong  = userError("邮箱或密码错误")
+	LoginFailed    = userError("登录失败")
 )
 
 type UserService interface {
@@ -66,7 +72,8 @@ func (u userService) Register(name string, email string, password string) (strin
 }
 
 func (u userService) Login(email string, password string) (string, error) {
-	user, err := u.user.GetByEmail(email)
+	var user model.User
+	err := model.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", UserNotExisted

@@ -54,7 +54,7 @@ func (a articleController) AddArticle(c *gin.Context) {
 		logs.Errorf("add article failed, error: " + err.Error())
 		a.failed(c, Failed, "添加文章失败")
 	} else {
-		logs.Debugf("add article success，id:%d", id)
+		logs.Debugf("add article success，id: %d", id)
 		a.success(c, "添加文章成功", map[string]interface{}{"id": id})
 	}
 	return
@@ -94,7 +94,7 @@ func (a articleController) EditArticle(c *gin.Context) {
 			a.failed(c, Failed, "修改文章失败")
 		}
 	} else {
-		logs.Debugf("edit article success，id:%d", id)
+		logs.Debugf("edit article success，id: %d", id)
 		a.success(c, "修改文章成功", map[string]interface{}{"id": id})
 	}
 	return
@@ -109,14 +109,14 @@ func (a articleController) GetArticle(c *gin.Context) {
 	}
 	article, err := a.articleService.Get(uint(id))
 	if err != nil {
-		logs.Errorf("get article failed，id:%d, error:%s", id, err.Error())
+		logs.Errorf("get article failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(service.ArticleError); ok {
 			a.failed(c, Failed, err.Error())
 		} else {
 			a.failed(c, Failed, "获取文章失败")
 		}
 	} else {
-		logs.Debugf("get article success，id:%d", id)
+		logs.Debugf("get article success，id: %d", id)
 		a.success(c, "ok", resultWrap{
 			Article:   article,
 			CreatedAt: time.Unix(int64(article.CreatedAt), 0).Format("2006-01-02 15:04:05"),
@@ -135,7 +135,7 @@ func (a articleController) ListArticle(c *gin.Context) {
 	}
 	articles, err := a.articleService.List(page)
 	if err != nil {
-		logs.Errorf("list article failed，error:%s", err.Error())
+		logs.Errorf("list article failed，error: %s", err.Error())
 		a.failed(c, Failed, "获取文章列表失败")
 	} else {
 		var result []resultWrap
@@ -165,14 +165,14 @@ func (a articleController) DelArticle(c *gin.Context) {
 	}
 	_, err = a.articleService.Del(uint(id), a.getUserId(c))
 	if err != nil {
-		logs.Errorf("del article failed，id:%d, error:%s", id, err.Error())
+		logs.Errorf("del article failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(service.ArticleError); ok {
 			a.failed(c, Failed, err.Error())
 		} else {
 			a.failed(c, Failed, "删除失败")
 		}
 	} else {
-		logs.Debugf("del article success，id:%d", id)
+		logs.Debugf("del article success，id: %d", id)
 		a.success(c, "删除成功", map[string]interface{}{"id": id})
 	}
 	return
@@ -197,7 +197,7 @@ func (a articleController) AddComment(c *gin.Context) {
 	}
 	comment, err := a.articleService.AddComment(uint(id), userId, content)
 	if err != nil {
-		logs.Errorf("del article failed，id:%d, error:%s", id, err.Error())
+		logs.Errorf("del article failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(service.ArticleError); ok {
 			a.failed(c, NotFound, err.Error())
 		} else {
@@ -218,7 +218,7 @@ func (a articleController) ListComment(c *gin.Context) {
 	}
 	comments, err := a.articleService.ListComment(uint(id))
 	if err != nil {
-		logs.Errorf("get article list failed，error:%s", err.Error())
+		logs.Errorf("get article list failed，error: %s", err.Error())
 		a.success(c, "ok", []string{})
 	} else {
 		a.success(c, "ok", comments)
@@ -226,7 +226,7 @@ func (a articleController) ListComment(c *gin.Context) {
 	return
 }
 
-func (a articleController) StopTheWorld() {
+func StopTheWorld() {
 	go service.StopAdd()
 	logs.Infof("stop the world,waiting for 3s")
 	time.Sleep(time.Second * 3)

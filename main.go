@@ -30,12 +30,12 @@ func main() {
 	}
 	for _, signal := range signals {
 		_ = server.RegisterSignalHook(endless.PRE_SIGNAL, signal, func() {
-			controller.ArticleController.StopTheWorld()
+			controller.StopTheWorld()
 		})
 	}
 	log.Println("server started success")
 	err := server.ListenAndServe()
 	if err != nil {
-		log.Fatalf("server start failed, error:%s", err.Error())
+		log.Fatalf("server start failed, error: %s", err.Error())
 	}
 }

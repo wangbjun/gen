@@ -42,7 +42,7 @@ func (u userController) Register(c *gin.Context) {
 			u.failed(c, Failed, "注册失败")
 		}
 	} else {
-		logs.Infof("register user success, email:%s", email)
+		logs.Infof("register user success, email: %s", email)
 		u.success(c, "ok", map[string]interface{}{"token": token})
 	}
 	return
@@ -69,7 +69,7 @@ func (u userController) Login(c *gin.Context) {
 			u.failed(c, Failed, "登录失败")
 		}
 	} else {
-		logs.Infof("login user success, email:%s", email)
+		logs.Infof("login user success, email: %s", email)
 		u.success(c, "ok", map[string]interface{}{"token": token})
 	}
 	return
@@ -79,6 +79,6 @@ func (u userController) Login(c *gin.Context) {
 func (u userController) Logout(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	// TODO token加入黑名单
-	logs.Debugf("add token into blacklist, token:%s", token)
+	logs.Debugf("add token into blacklist, token: %s", token)
 	u.success(c, "ok", "")
 }
