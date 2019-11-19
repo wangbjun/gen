@@ -28,4 +28,4 @@
 |POST|/api/v1/user/logout|用户登出
 
 ## 使用
-项目使用 go module，建议git clone 到本地执行```go mod download```下载相关依赖，然后执行 storage/databases 目录下的sql，然后打开.env文件配置好数据库即可！
+项目使用 go module，建议git clone 到本地执行```go mod download```下载相关依赖，然后执行 storage/databases 目录下的sql，然后打开 app.ini 文件配置好数据库即可！
