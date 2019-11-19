@@ -7,7 +7,11 @@ import (
 )
 
 func Route(Router *gin.Engine) {
+	Router.Use(middleware.Request()) //全局中间件,记录请求日志
+
 	Router.GET("/", BaseController.Index)
+
+	Router.Group("/api")
 
 	Router.Group("/api/v1/articles").
 		GET("/", ArticleController.ListArticle).  //文章列表
@@ -26,4 +30,5 @@ func Route(Router *gin.Engine) {
 
 	Router.Group("/api/v1/user").Use(middleware.Auth()).
 		POST("/logout", UserController.Logout) //用户退出登录
+
 }

@@ -1,4 +1,4 @@
-package service
+package common
 
 import (
 	"crypto/md5"
@@ -8,12 +8,6 @@ import (
 	"github.com/google/uuid"
 	"hash"
 	"io"
-)
-
-const (
-	StatusOK  = 0
-	StatusDel = 1
-	PageSize  = 5
 )
 
 //打印元素

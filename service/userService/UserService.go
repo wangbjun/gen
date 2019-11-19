@@ -1,9 +1,10 @@
-package service
+package userService
 
 import (
 	"errors"
 	"fmt"
-	"gen/model"
+	"gen/common"
+	. "gen/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"time"
@@ -25,19 +26,19 @@ var (
 	LoginFailed    = userError("登录失败")
 )
 
-type UserService interface {
+type Service interface {
 	Register(name string, email string, password string) (string, error)
 	Login(email string, password string) (string, error)
 	ParseToken(string) (uint, error)
 }
 
 type userService struct {
-	user *model.User
+	user *User
 }
 
-func NewUserService() UserService {
+func New() Service {
 	return &userService{
-		user: &model.User{},
+		user: &User{},
 	}
 }
 
@@ -49,16 +50,16 @@ func (u userService) Register(name string, email string, password string) (strin
 	if emailExisted {
 		return "", UserExisted
 	}
-	var user = model.User{}
-	salt := GetUuidV4()[24:]
+	var user = User{}
+	salt := common.GetUuidV4()[24:]
 	user.Name = name
 	user.Email = email
-	user.Password = Sha1([]byte(password + salt))
+	user.Password = common.Sha1([]byte(password + salt))
 	user.Salt = salt
-	user.CreatedAt = uint(time.Now().Unix())
-	user.UpdatedAt = uint(time.Now().Unix())
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 
-	err = model.DB.Save(&user).Error
+	err = DB.Save(&user).Error
 	if err != nil {
 		return "", err
 	} else {
@@ -72,15 +73,15 @@ func (u userService) Register(name string, email string, password string) (strin
 }
 
 func (u userService) Login(email string, password string) (string, error) {
-	var user model.User
-	err := model.DB.Where("email = ?", email).First(&user).Error
+	var user User
+	err := DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", UserNotExisted
 		}
 		return "", err
 	}
-	if user.Password != Sha1([]byte(password+user.Salt)) {
+	if user.Password != common.Sha1([]byte(password+user.Salt)) {
 		return "", PasswordWrong
 	} else {
 		token, err := u.createToken(user.ID)

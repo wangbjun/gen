@@ -1,13 +1,13 @@
 CREATE TABLE `articles`
 (
-    `id`         int(11) unsigned    NOT NULL AUTO_INCREMENT,
-    `title`      varchar(100)        NOT NULL COMMENT '标题',
-    `content`    varchar(2000)       NOT NULL COMMENT '内容',
-    `user_id`    int(11) unsigned    NOT NULL COMMENT '用户id',
-    `view_num`   int(11)             NOT NULL COMMENT '浏览次数',
-    `created_at` int(11) unsigned    NOT NULL COMMENT '创建时间',
-    `updated_at` int(11) unsigned    NOT NULL COMMENT '更新时间',
-    `status`     tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '状态，0正常，1删除',
+    `id`         int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `title`      varchar(100)     NOT NULL COMMENT '标题',
+    `content`    varchar(2000)    NOT NULL COMMENT '内容',
+    `user_id`    int(11) unsigned NOT NULL COMMENT '用户id',
+    `view_num`   int(11)          NOT NULL COMMENT '浏览次数',
+    `created_at` datetime default NULL COMMENT '创建时间',
+    `updated_at` datetime default NULL COMMENT '更新时间',
+    `deleted_at` datetime default NULL COMMENT '删除时间',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -15,13 +15,13 @@ CREATE TABLE `articles`
 
 CREATE TABLE `comments`
 (
-    `id`         int(10) unsigned    NOT NULL AUTO_INCREMENT,
-    `user_id`    int(11)             NOT NULL COMMENT '用户id',
-    `article_id` int(10) unsigned    NOT NULL COMMENT '文字id',
-    `content`    varchar(500)        NOT NULL COMMENT '评论内容',
-    `created_at` int(11) unsigned    NOT NULL COMMENT '创建时间',
-    `updated_at` int(11) unsigned    NOT NULL COMMENT '更新时间',
-    `status`     tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '状态，0正常，1删除',
+    `id`         int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id`    int(11)          NOT NULL COMMENT '用户id',
+    `article_id` int(10) unsigned NOT NULL COMMENT '文字id',
+    `content`    varchar(500)     NOT NULL COMMENT '评论内容',
+    `created_at` datetime default NULL COMMENT '创建时间',
+    `updated_at` datetime default NULL COMMENT '更新时间',
+    `deleted_at` datetime default NULL COMMENT '删除时间',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -34,9 +34,9 @@ CREATE TABLE `users`
     `email`      varchar(50)      NOT NULL COMMENT '邮箱',
     `password`   varchar(40)      NOT NULL COMMENT '密码',
     `salt`       varchar(100)     NOT NULL COMMENT '盐',
-    `created_at` int(11) unsigned NOT NULL COMMENT '创建时间',
-    `updated_at` int(11) unsigned NOT NULL COMMENT '更新时间',
-    `status`     int(11) unsigned NOT NULL COMMENT '状态，0正常，1删除',
+    `created_at` datetime default NULL COMMENT '创建时间',
+    `updated_at` datetime default NULL COMMENT '更新时间',
+    `deleted_at` datetime default NULL COMMENT '删除时间',
     PRIMARY KEY (`id`),
     KEY `idx_email` (`email`)
 ) ENGINE = InnoDB

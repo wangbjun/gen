@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"gen/service"
+	userService2 "gen/service/userService"
 	"github.com/gin-gonic/gin"
 	logs "github.com/sirupsen/logrus"
 	"net/http"
@@ -10,7 +10,7 @@ import (
 
 // 用户鉴权
 func Auth() gin.HandlerFunc {
-	userService := service.NewUserService()
+	userService := userService2.New()
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		if token == "" {
