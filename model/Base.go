@@ -2,7 +2,7 @@ package model
 
 import (
 	"gen/config"
-	logNew "gen/log"
+	"gen/library/zlog"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/wendal/errors"
@@ -31,7 +31,7 @@ func getDbConnection(name string) (*gorm.DB, error) {
 		conf["database"] + "?charset" + conf["charset"] + "&parseTime=true"
 	db, err := gorm.Open(conf["dialect"], dsn)
 	if err != nil {
-		logNew.Sugar.Errorf("open database connection failed,error: %s", err.Error())
+		zlog.Logger.Sugar().Errorf("open database connection failed,error: %s", err.Error())
 		return nil, err
 	}
 	idle, _ := strconv.Atoi(conf["maxIdleConns"])
@@ -40,7 +40,7 @@ func getDbConnection(name string) (*gorm.DB, error) {
 	db.DB().SetMaxOpenConns(open)
 	if config.Conf.Section("APP").Key("DEBUG").String() == "true" {
 		db.LogMode(true)
-		db.SetLogger(new(logNew.SqlLog))
+		db.SetLogger(new(zlog.SqlLog))
 	}
 	return db, nil
 }

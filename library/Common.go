@@ -1,19 +1,16 @@
-package common
+package library
 
 import (
 	"crypto/md5"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/thinkoner/openssl"
 	"hash"
 	"io"
 )
-
-//打印元素
-func DD(obj ...interface{}) {
-	fmt.Printf("%v\n", obj)
-}
 
 //md5
 func MD5(str []byte) string {
@@ -42,6 +39,22 @@ func FileHash(reader io.Reader, tp string) string {
 		return ""
 	}
 	return fmt.Sprintf("%x", h.Sum(result))
+}
+
+func Encrypt(src, key, iv []byte) (string, error) {
+	var dst, err = openssl.AesCBCEncrypt(src, key, iv, openssl.PKCS7_PADDING)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(dst), nil
+}
+
+func Decrypt(dst, key, iv []byte) (string, error) {
+	result, err := openssl.AesCBCDecrypt(dst, key, iv, openssl.PKCS7_PADDING)
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
 }
 
 //生成uuid

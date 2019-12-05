@@ -1,4 +1,4 @@
-package log
+package zlog
 
 import (
 	"gen/config"
@@ -10,7 +10,11 @@ import (
 	"time"
 )
 
-var Sugar *zap.SugaredLogger
+var Logger *zap.Logger
+
+func WithContext(ctx *gin.Context) *zap.Logger {
+	return Logger.With(getContext(ctx)...)
+}
 
 func init() {
 	infoLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
@@ -44,46 +48,32 @@ func init() {
 	logger := zap.New(core, zap.AddCaller())
 	defer logger.Sync()
 
-	Sugar = logger.Sugar()
+	Logger = logger
 }
 
-func WithContext(ctx *gin.Context) []interface{} {
+func getContext(ctx *gin.Context) []zap.Field {
 	var (
 		now          = time.Now().Format("2006-01-02 15:04:05.000")
-		serviceStart = ""
-		duration     = 0.0
 		processId    = os.Getpid()
-		request      = ""
-		hostAddress  = ""
-		clientIp     = ""
-		traceId      = ""
-		parentId     = ""
-		params       = make(map[string][]string)
-		size         = 0
-	)
-	if ctx != nil {
-		startTime, _ := ctx.Get("startTime")
-		duration = float64(time.Now().Sub(startTime.(time.Time)).Nanoseconds()/1e4) / 100.0 //单位毫秒
+		startTime, _ = ctx.Get("startTime")
+		duration     = int(time.Now().Sub(startTime.(time.Time)) / 1e6) //单位毫秒
 		serviceStart = startTime.(time.Time).Format("2006-01-02 15:04:05.000")
-		request = ctx.Request.RequestURI
-		hostAddress = ctx.Request.Host
-		clientIp = ctx.ClientIP()
-		traceId = ctx.GetString("traceId")
-		parentId = ctx.GetString("parentId")
-		params = ctx.Request.PostForm
-		size = ctx.Writer.Size()
-	}
-
-	return []interface{}{
-		"traceId", traceId,
-		"serviceStart", serviceStart,
-		"serviceEnd", now,
-		"processId", processId,
-		"request", request,
-		"params", params,
-		"size", size,
-		"hostAddress", hostAddress,
-		"clientIp", clientIp,
-		"parentId", parentId,
-		"duration", duration}
+		request      = ctx.Request.RequestURI
+		hostAddress  = ctx.Request.Host
+		clientIp     = ctx.ClientIP()
+		traceId      = ctx.GetString("traceId")
+		parentId     = ctx.GetString("parentId")
+		params       = ctx.Request.PostForm
+	)
+	return []zap.Field{
+		zap.String("traceId", traceId),
+		zap.String("serviceStart", serviceStart),
+		zap.String("serviceEnd", now),
+		zap.Int("processId", processId),
+		zap.String("request", request),
+		zap.String("params", params.Encode()),
+		zap.String("hostAddress", hostAddress),
+		zap.String("clientIp", clientIp),
+		zap.String("parentId", parentId),
+		zap.Int("duration", duration)}
 }

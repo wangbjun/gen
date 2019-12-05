@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	Success      = 200  //正常
-	Failed       = 500  //失败
-	ParamsError  = 4001 //参数错误
-	NotFound     = 4004 //记录不存在
-	UnAuthorized = 401  //未授权
-	NotLogin     = 405  //未登录
+	Success      = 200 //正常
+	Failed       = 500 //失败
+	ParamError   = 400 //参数错误
+	NotFound     = 404 //不存在
+	UnAuthorized = 401 //未授权
+	NotLogin     = 405 //未登录
 )
 
 type Controller struct{}
@@ -41,13 +41,4 @@ func (*Controller) failed(ctx *gin.Context, code int, msg string) {
 		"code": code,
 		"msg":  msg,
 	})
-}
-
-// 获取当前用户ID
-func (*Controller) getUserId(ctx *gin.Context) uint {
-	userId, exists := ctx.Get("userId")
-	if exists {
-		return userId.(uint)
-	}
-	return 0
 }

@@ -1,4 +1,4 @@
-package log
+package zlog
 
 import (
 	"database/sql/driver"
@@ -100,6 +100,6 @@ func (SqlLog) Print(values ...interface{}) {
 			messages["info"] = values[2:]
 		}
 
-		Sugar.Infow("sql_log", "messages", messages)
+		Logger.Sugar().Infow("sql_log", "messages", messages)
 	}
 }

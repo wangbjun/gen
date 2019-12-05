@@ -2,15 +2,14 @@ package articleService
 
 import (
 	"errors"
-	"gen/common"
-	"gen/log"
+	"gen/library/zlog"
 	. "gen/model"
 	"github.com/jinzhu/gorm"
 	"time"
 )
 
 type Service interface {
-	New(*Article) (uint, error)
+	Add(*Article) (uint, error)
 	Edit(uint, *Article) (uint, error)
 	Detail(id uint) (*Article, error)
 	List(page int) ([]*Article, error)
@@ -38,9 +37,7 @@ var (
 	PermissionDenied = articleError("没有权限")
 )
 
-func (articleService) New(article *Article) (uint, error) {
-	article.CreatedAt = time.Now()
-	article.UpdatedAt = time.Now()
+func (articleService) Add(article *Article) (uint, error) {
 	err := DB.Create(&article).Error
 	if err != nil {
 		return 0, err
@@ -48,11 +45,14 @@ func (articleService) New(article *Article) (uint, error) {
 	return article.ID, nil
 }
 
-func (a articleService) Edit(id uint, params *Article) (uint, error) {
+func (articleService) Edit(id uint, params *Article) (uint, error) {
 	var article Article
 	err := DB.Where("id = ?", id).Find(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return 0, NotFound
+	}
+	if err != nil {
+		return 0, err
 	}
 	if article.UserID != params.UserID {
 		return 0, PermissionDenied
@@ -79,7 +79,7 @@ func (articleService) Detail(id uint) (*Article, error) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Sugar.Errorf("update view_num failed, error: %s", err)
+				zlog.Logger.Sugar().Errorf("update view_num failed, error: %s", err)
 			}
 		}()
 		db.UpdateColumn("view_num", gorm.Expr("view_num + 1"))
@@ -89,9 +89,8 @@ func (articleService) Detail(id uint) (*Article, error) {
 
 func (articleService) List(page int) ([]*Article, error) {
 	var article []*Article
-	offset := (page - 1) * common.PageSize
-	err := DB.Limit(common.PageSize).Offset(offset).Order("id desc").Find(&article).Error
-
+	offset := (page - 1) * 10
+	err := DB.Limit(10).Offset(offset).Order("id desc").Find(&article).Error
 	if err != nil {
 		return nil, err
 	}
@@ -101,15 +100,16 @@ func (articleService) List(page int) ([]*Article, error) {
 func (articleService) Del(id uint, userId uint) (bool, error) {
 	var article Article
 	err := DB.Where("id = ?", id).First(&article).Error
-	if err != nil && gorm.IsRecordNotFoundError(err) {
+	if gorm.IsRecordNotFoundError(err) {
 		return false, NotFound
+	}
+	if err != nil {
+		return false, err
 	}
 	if article.UserID != userId {
 		return false, PermissionDenied
 	}
-	now := time.Now()
-	article.DeletedAt = &now
-	err = DB.Save(&article).Error
+	err = DB.Delete(&article).Error
 	if err != nil {
 		return false, err
 	}
@@ -119,8 +119,11 @@ func (articleService) Del(id uint, userId uint) (bool, error) {
 func (a articleService) AddComment(id uint, userId uint, content string) (*Comment, error) {
 	var article Article
 	err := DB.Where("id = ?", id).First(&article).Error
-	if err != nil && gorm.IsRecordNotFoundError(err) {
+	if gorm.IsRecordNotFoundError(err) {
 		return nil, NotFound
+	}
+	if err != nil {
+		return nil, nil
 	}
 	comment := Comment{}
 	comment.UserID = userId
