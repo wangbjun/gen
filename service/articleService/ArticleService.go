@@ -2,7 +2,7 @@ package articleService
 
 import (
 	"errors"
-	"gen/library/zlog"
+	"gen/lib/zlog"
 	. "gen/model"
 	"github.com/jinzhu/gorm"
 	"time"

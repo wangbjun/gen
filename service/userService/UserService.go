@@ -3,7 +3,7 @@ package userService
 import (
 	"errors"
 	"fmt"
-	"gen/library"
+	"gen/lib/function"
 	. "gen/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -51,10 +51,10 @@ func (u userService) Register(name string, email string, password string) (strin
 		return "", UserExisted
 	}
 	var user = User{}
-	salt := library.GetUuidV4()[24:]
+	salt := function.GetUuidV4()[24:]
 	user.Name = name
 	user.Email = email
-	user.Password = library.Sha1([]byte(password + salt))
+	user.Password = function.Sha1([]byte(password + salt))
 	user.Salt = salt
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -81,7 +81,7 @@ func (u userService) Login(email string, password string) (string, error) {
 		}
 		return "", err
 	}
-	if user.Password != library.Sha1([]byte(password+user.Salt)) {
+	if user.Password != function.Sha1([]byte(password+user.Salt)) {
 		return "", PasswordWrong
 	} else {
 		token, err := u.createToken(user.ID)

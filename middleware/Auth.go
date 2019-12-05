@@ -1,34 +1,34 @@
 package middleware
 
 import (
-	userService2 "gen/service/userService"
+	"gen/lib/zlog"
+	"gen/service/userService"
 	"github.com/gin-gonic/gin"
-	logs "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
 
 // 用户鉴权
 func Auth() gin.HandlerFunc {
-	userService := userService2.New()
-	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
+	us := userService.New()
+	return func(ctx *gin.Context) {
+		token := ctx.GetHeader("Authorization")
 		if token == "" {
-			c.AbortWithStatusJSON(http.StatusOK, gin.H{
-				"code": 401,
+			ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+				"code": 405,
 				"msg":  "未登录",
 			})
 			return
 		}
-		userId, err := userService.ParseToken(strings.TrimSpace(strings.Trim(token, "Bearer")))
+		userId, err := us.ParseToken(strings.TrimSpace(strings.Trim(token, "Bearer")))
 		if err == nil && userId > 0 {
-			logs.Debugf("parse token success, userId: %d", userId)
-			c.Set("userId", userId)
-			c.Next()
+			zlog.WithContext(ctx).Sugar().Debugf("parse token success, userId: %d", userId)
+			ctx.Set("userId", userId)
+			ctx.Next()
 		} else {
-			logs.Errorf("parse token failed, error: %s", err)
-			c.AbortWithStatusJSON(http.StatusOK, gin.H{
-				"code": 401,
+			zlog.WithContext(ctx).Sugar().Errorf("parse token failed, error: %s", err)
+			ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+				"code": 405,
 				"msg":  "用户Token无效",
 			})
 		}

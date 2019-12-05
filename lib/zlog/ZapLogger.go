@@ -56,7 +56,7 @@ func getContext(ctx *gin.Context) []zap.Field {
 		now          = time.Now().Format("2006-01-02 15:04:05.000")
 		processId    = os.Getpid()
 		startTime, _ = ctx.Get("startTime")
-		duration     = int(time.Now().Sub(startTime.(time.Time)) / 1e6) //单位毫秒
+		duration     = float64(time.Now().Sub(startTime.(time.Time)).Nanoseconds()/1e4) / 100.0 //单位毫秒,保留2位小数
 		serviceStart = startTime.(time.Time).Format("2006-01-02 15:04:05.000")
 		request      = ctx.Request.RequestURI
 		hostAddress  = ctx.Request.Host
@@ -75,5 +75,5 @@ func getContext(ctx *gin.Context) []zap.Field {
 		zap.String("hostAddress", hostAddress),
 		zap.String("clientIp", clientIp),
 		zap.String("parentId", parentId),
-		zap.Int("duration", duration)}
+		zap.Float64("duration", duration)}
 }

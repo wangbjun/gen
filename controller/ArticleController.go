@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"gen/library/zlog"
+	"gen/lib/zlog"
 	"gen/model"
 	"gen/service/articleService"
 	"github.com/asaskevich/govalidator"
@@ -91,29 +91,29 @@ func (ac articleController) EditArticle(ctx *gin.Context) {
 		}
 	} else {
 		zlog.WithContext(ctx).Sugar().Debugf("edit article success，id: %d", id)
-		ac.success(ctx, "修改文章成功", map[string]interface{}{"id": id})
+		ac.success(ctx, "修改文章成功", gin.H{"id": id})
 	}
 	return
 }
 
 // 文章详情
-func (ac articleController) GetArticle(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+func (ac articleController) GetArticle(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(c, ParamError, "id不能为空")
+		ac.failed(ctx, ParamError, "id不能为空")
 		return
 	}
 	article, err := ac.articleService.Detail(uint(id))
 	if err != nil {
-		zlog.WithContext(c).Sugar().Errorf("get article failed，id: %d, error: %s", id, err.Error())
+		zlog.WithContext(ctx).Sugar().Errorf("get article failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(articleService.Error); ok {
-			ac.failed(c, NotFound, err.Error())
+			ac.failed(ctx, NotFound, err.Error())
 		} else {
-			ac.failed(c, Failed, "获取文章失败")
+			ac.failed(ctx, Failed, "获取文章失败")
 		}
 	} else {
-		zlog.WithContext(c).Sugar().Debugf("get article success，id: %d", id)
-		ac.success(c, "ok", articleResult{
+		zlog.WithContext(ctx).Sugar().Debugf("get article success，id: %d", id)
+		ac.success(ctx, "ok", articleResult{
 			Id:        article.ID,
 			Title:     article.Title,
 			Content:   article.Content,
@@ -127,15 +127,15 @@ func (ac articleController) GetArticle(c *gin.Context) {
 }
 
 // 文章列表
-func (ac articleController) ListArticle(c *gin.Context) {
-	page, err := strconv.Atoi(c.Param("page"))
+func (ac articleController) ListArticle(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.Param("page"))
 	if err != nil || page <= 0 {
 		page = 1
 	}
 	articles, err := ac.articleService.List(page)
 	if err != nil {
-		zlog.WithContext(c).Sugar().Errorf("list article failed，error: %s", err.Error())
-		ac.failed(c, Failed, "获取文章列表失败")
+		zlog.WithContext(ctx).Sugar().Errorf("list article failed，error: %s", err.Error())
+		ac.failed(ctx, Failed, "获取文章列表失败")
 	} else {
 		var result []articleResult
 		for _, article := range articles {
@@ -150,10 +150,10 @@ func (ac articleController) ListArticle(c *gin.Context) {
 			})
 		}
 		if len(result) != 0 {
-			ac.success(c, "ok", result)
+			ac.success(ctx, "ok", result)
 		} else {
 			// 解决列表为空时，data为null的问题
-			ac.success(c, "ok", []string{})
+			ac.success(ctx, "ok", []string{})
 		}
 	}
 	return
@@ -176,7 +176,7 @@ func (ac articleController) DelArticle(ctx *gin.Context) {
 		}
 	} else {
 		zlog.WithContext(ctx).Sugar().Debugf("del article success，id: %d", id)
-		ac.success(ctx, "删除成功", map[string]interface{}{"id": id})
+		ac.success(ctx, "删除成功", gin.H{"id": id})
 	}
 	return
 }
@@ -208,18 +208,18 @@ func (ac articleController) AddComment(ctx *gin.Context) {
 }
 
 // 评论列表
-func (ac articleController) ListComment(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+func (ac articleController) ListComment(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(c, ParamError, "id不能为空")
+		ac.failed(ctx, ParamError, "id不能为空")
 		return
 	}
 	comments, err := ac.articleService.ListComment(uint(id))
 	if err != nil {
-		zlog.WithContext(c).Sugar().Errorf("get article list failed，error: %s", err.Error())
-		ac.success(c, "ok", []string{})
+		zlog.WithContext(ctx).Sugar().Errorf("get article list failed，error: %s", err.Error())
+		ac.success(ctx, "ok", []string{})
 	} else {
-		ac.success(c, "ok", comments)
+		ac.success(ctx, "ok", comments)
 	}
 	return
 }
