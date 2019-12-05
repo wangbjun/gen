@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// 在默认http client基础上增加日志功能
 var HttpLoggerTransport = &loggedRoundTripper{http.DefaultTransport}
 
 type loggedRoundTripper struct {
