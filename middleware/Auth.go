@@ -10,7 +10,7 @@ import (
 
 // 用户鉴权
 func Auth() gin.HandlerFunc {
-	us := userService.New()
+	us := user.New()
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 		if token == "" {

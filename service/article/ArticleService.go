@@ -1,4 +1,4 @@
-package articleService
+package article
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-package userService
+package user
 
 import (
 	"errors"
@@ -10,20 +10,20 @@ import (
 	"time"
 )
 
-type UserError struct {
+type Error struct {
 	error
 }
 
-func userError(err string) UserError {
-	return UserError{errors.New(err)}
+func userError(err string) Error {
+	return Error{errors.New(err)}
 }
 
 var (
-	UserSecret     = []byte("@fc6951544^f55c644!@0d")
-	UserExisted    = userError("邮箱已存在")
-	UserNotExisted = userError("邮箱不存在")
-	PasswordWrong  = userError("邮箱或密码错误")
-	LoginFailed    = userError("登录失败")
+	Secret        = []byte("@fc6951544^f55c644!@0d")
+	Existed       = userError("邮箱已存在")
+	NotExisted    = userError("邮箱不存在")
+	PasswordWrong = userError("邮箱或密码错误")
+	LoginFailed   = userError("登录失败")
 )
 
 type Service interface {
@@ -48,7 +48,7 @@ func (u userService) Register(name string, email string, password string) (strin
 		return "", err
 	}
 	if emailExisted {
-		return "", UserExisted
+		return "", Existed
 	}
 	var user = User{}
 	salt := function.GetUuidV4()[24:]
@@ -77,7 +77,7 @@ func (u userService) Login(email string, password string) (string, error) {
 	err := DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return "", UserNotExisted
+			return "", NotExisted
 		}
 		return "", err
 	}
@@ -99,7 +99,7 @@ func (u userService) ParseToken(tokenString string) (uint, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return UserSecret, nil
+		return Secret, nil
 	})
 	if err != nil {
 		return 0, err
@@ -117,7 +117,7 @@ func (u userService) createToken(userId uint) (string, error) {
 		"userId": userId,
 		"exp":    time.Now().Add(time.Hour * 24).Unix(),
 	})
-	tokenString, err := token.SignedString(UserSecret)
+	tokenString, err := token.SignedString(Secret)
 	if err != nil {
 		return "", err
 	}

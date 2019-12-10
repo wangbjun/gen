@@ -3,7 +3,7 @@ package controller
 import (
 	"gen/lib/zlog"
 	"gen/model"
-	"gen/service/articleService"
+	"gen/service/article"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 
 type articleController struct {
 	Controller
-	articleService articleService.Service
+	articleService article.Service
 }
 
 type articleResult struct {
@@ -26,12 +26,12 @@ type articleResult struct {
 }
 
 var ArticleController = &articleController{
-	articleService: articleService.New(),
+	articleService: article.New(),
 }
 
 // 添加文章
 func (ac articleController) AddArticle(ctx *gin.Context) {
-	zlog.WithContext(ctx).Sugar().Debug("add article")
+	zlog.WithContext(ctx).Sugar().Debug("add at")
 	var (
 		title, _   = ctx.GetPostForm("title")
 		content, _ = ctx.GetPostForm("content")
@@ -44,18 +44,18 @@ func (ac articleController) AddArticle(ctx *gin.Context) {
 		ac.failed(ctx, ParamError, "内容长度1-2000")
 		return
 	}
-	article := model.Article{}
-	article.Title = title
-	article.Content = content
-	article.UserID = uint(ctx.GetInt("userId"))
-	article.CreatedAt = time.Now()
-	article.UpdatedAt = time.Now()
+	at := model.Article{}
+	at.Title = title
+	at.Content = content
+	at.UserID = uint(ctx.GetInt("userId"))
+	at.CreatedAt = time.Now()
+	at.UpdatedAt = time.Now()
 
-	if id, err := ac.articleService.Add(&article); err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("add article failed, error: " + err.Error())
+	if id, err := ac.articleService.Add(&at); err != nil {
+		zlog.WithContext(ctx).Sugar().Errorf("add at failed, error: " + err.Error())
 		ac.failed(ctx, Failed, "添加文章失败")
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("add article success，id: %d", id)
+		zlog.WithContext(ctx).Sugar().Debugf("add at success，id: %d", id)
 		ac.success(ctx, "添加文章成功", gin.H{"id": id})
 	}
 	return
@@ -63,7 +63,7 @@ func (ac articleController) AddArticle(ctx *gin.Context) {
 
 // 修改文章
 func (ac articleController) EditArticle(ctx *gin.Context) {
-	zlog.WithContext(ctx).Sugar().Debug("edit article")
+	zlog.WithContext(ctx).Sugar().Debug("edit at")
 	var (
 		id, _      = strconv.Atoi(ctx.Param("id"))
 		title, _   = ctx.GetPostForm("title")
@@ -77,20 +77,20 @@ func (ac articleController) EditArticle(ctx *gin.Context) {
 		ac.failed(ctx, ParamError, "内容长度1-2000")
 		return
 	}
-	article := model.Article{}
-	article.Title = title
-	article.Content = content
-	article.UserID = uint(ctx.GetInt("userId"))
-	article.UpdatedAt = time.Now()
-	if id, err := ac.articleService.Edit(uint(id), &article); err != nil {
-		zlog.WithContext(ctx).Error("edit article failed, error: " + err.Error())
-		if _, ok := err.(articleService.Error); ok {
+	at := model.Article{}
+	at.Title = title
+	at.Content = content
+	at.UserID = uint(ctx.GetInt("userId"))
+	at.UpdatedAt = time.Now()
+	if id, err := ac.articleService.Edit(uint(id), &at); err != nil {
+		zlog.WithContext(ctx).Error("edit at failed, error: " + err.Error())
+		if _, ok := err.(article.Error); ok {
 			ac.failed(ctx, NotFound, err.Error())
 		} else {
 			ac.failed(ctx, Failed, "修改文章失败")
 		}
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("edit article success，id: %d", id)
+		zlog.WithContext(ctx).Sugar().Debugf("edit at success，id: %d", id)
 		ac.success(ctx, "修改文章成功", gin.H{"id": id})
 	}
 	return
@@ -103,24 +103,24 @@ func (ac articleController) GetArticle(ctx *gin.Context) {
 		ac.failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	article, err := ac.articleService.Detail(uint(id))
+	at, err := ac.articleService.Detail(uint(id))
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("get article failed，id: %d, error: %s", id, err.Error())
-		if _, ok := err.(articleService.Error); ok {
+		zlog.WithContext(ctx).Sugar().Errorf("get at failed，id: %d, error: %s", id, err.Error())
+		if _, ok := err.(article.Error); ok {
 			ac.failed(ctx, NotFound, err.Error())
 		} else {
 			ac.failed(ctx, Failed, "获取文章失败")
 		}
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("get article success，id: %d", id)
+		zlog.WithContext(ctx).Sugar().Debugf("get at success，id: %d", id)
 		ac.success(ctx, "ok", articleResult{
-			Id:        article.ID,
-			Title:     article.Title,
-			Content:   article.Content,
-			UserID:    article.UserID,
-			ViewNum:   article.ViewNum,
-			CreatedAt: article.CreatedAt.Format("2006-01-02 15:04:05"),
-			UpdatedAt: article.CreatedAt.Format("2006-01-02 15:04:05"),
+			Id:        at.ID,
+			Title:     at.Title,
+			Content:   at.Content,
+			UserID:    at.UserID,
+			ViewNum:   at.ViewNum,
+			CreatedAt: at.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt: at.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 	return
@@ -138,15 +138,15 @@ func (ac articleController) ListArticle(ctx *gin.Context) {
 		ac.failed(ctx, Failed, "获取文章列表失败")
 	} else {
 		var result []articleResult
-		for _, article := range articles {
+		for _, at := range articles {
 			result = append(result, articleResult{
-				Id:        article.ID,
-				Title:     article.Title,
-				Content:   article.Content,
-				UserID:    article.UserID,
-				ViewNum:   article.ViewNum,
-				CreatedAt: article.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdatedAt: article.UpdatedAt.Format("2006-01-02 15:04:05"),
+				Id:        at.ID,
+				Title:     at.Title,
+				Content:   at.Content,
+				UserID:    at.UserID,
+				ViewNum:   at.ViewNum,
+				CreatedAt: at.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdatedAt: at.UpdatedAt.Format("2006-01-02 15:04:05"),
 			})
 		}
 		if len(result) != 0 {
@@ -169,7 +169,7 @@ func (ac articleController) DelArticle(ctx *gin.Context) {
 	_, err = ac.articleService.Del(uint(id), uint(ctx.GetInt("userId")))
 	if err != nil {
 		zlog.WithContext(ctx).Sugar().Errorf("del article failed，id: %d, error: %s", id, err.Error())
-		if _, ok := err.(articleService.Error); ok {
+		if _, ok := err.(article.Error); ok {
 			ac.failed(ctx, Failed, err.Error())
 		} else {
 			ac.failed(ctx, Failed, "删除失败")
@@ -196,7 +196,7 @@ func (ac articleController) AddComment(ctx *gin.Context) {
 	comment, err := ac.articleService.AddComment(uint(id), uint(ctx.GetInt("userId")), content)
 	if err != nil {
 		zlog.WithContext(ctx).Sugar().Errorf("del article failed，id: %d, error: %s", id, err.Error())
-		if _, ok := err.(articleService.Error); ok {
+		if _, ok := err.(article.Error); ok {
 			ac.failed(ctx, NotFound, err.Error())
 		} else {
 			ac.failed(ctx, Failed, "评论失败")
