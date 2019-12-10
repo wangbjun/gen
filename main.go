@@ -2,7 +2,6 @@ package main
 
 import (
 	"gen/config"
-	_ "gen/config"
 	"gen/router"
 	"github.com/gin-gonic/gin"
 	"log"

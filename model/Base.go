@@ -17,9 +17,9 @@ func init() {
 	if err != nil {
 		log.Println("init mysql pool failed，error：" + err.Error())
 	} else {
+		log.Println("init mysql pool success")
 		DB = db
 	}
-	log.Println("init mysql pool success")
 }
 
 func getDbConnection(name string) (*gorm.DB, error) {

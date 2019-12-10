@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"gen/lib/zlog"
-	"gen/service/userService"
+	"gen/service/user"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
