@@ -5,33 +5,44 @@ import (
 	"gen/lib/zlog"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/wendal/errors"
 	"log"
 	"strconv"
 )
 
-var DB *gorm.DB
+var dbConnections = make(map[string]*gorm.DB, 0)
 
 func init() {
-	db, err := getDbConnection("default")
-	if err != nil {
-		log.Println("init mysql pool failed，error：" + err.Error())
-	} else {
-		log.Println("init mysql pool success")
-		DB = db
+	for k, v := range config.DBConfig {
+		db, err := openConnection(v)
+		if err != nil {
+			log.Fatalf("init mysql pool [%s] failed，error： %s\n", k, err.Error())
+		} else {
+			dbConnections[k] = db
+			log.Printf("init mysql pool [%s] success\n", k)
+		}
 	}
 }
 
-func getDbConnection(name string) (*gorm.DB, error) {
-	conf, ok := config.DBConfig[name]
+func DB() *gorm.DB {
+	conn, ok := dbConnections["default"]
 	if !ok {
-		return nil, errors.New("database connection [" + name + "] is not existed")
+		return nil
 	}
-	dsn := conf["username"] + ":" + conf["password"] + "@tcp(" + conf["host"] + ":" + conf["port"] + ")/" +
-		conf["database"] + "?charset" + conf["charset"] + "&parseTime=true"
-	db, err := gorm.Open(conf["dialect"], dsn)
+	return conn
+}
+
+func UserDB() *gorm.DB {
+	conn, ok := dbConnections["user"]
+	if !ok {
+		return nil
+	}
+	return conn
+}
+
+func openConnection(conf map[string]string) (*gorm.DB, error) {
+	db, err := gorm.Open(conf["dialect"], conf["dsn"])
 	if err != nil {
-		zlog.Logger.Sugar().Errorf("open database connection failed,error: %s", err.Error())
+		zlog.Logger.Sugar().Errorf("open connection failed,error: %s", err.Error())
 		return nil, err
 	}
 	idle, _ := strconv.Atoi(conf["maxIdleConns"])

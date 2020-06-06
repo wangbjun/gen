@@ -1,4 +1,4 @@
-package function
+package lib
 
 import (
 	"crypto/md5"

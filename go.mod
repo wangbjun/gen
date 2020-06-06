@@ -11,7 +11,6 @@ require (
 	github.com/jinzhu/gorm v1.9.11
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/thinkoner/openssl v0.0.0-20191016104818-1df12dff7f46
-	github.com/wendal/errors v0.0.0-20181209125328-7f31f4b264ec
 	go.uber.org/zap v1.13.0
 	gopkg.in/ini.v1 v1.51.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0

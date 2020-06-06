@@ -18,7 +18,7 @@ func WithContext(ctx *gin.Context) *zap.Logger {
 
 func init() {
 	infoLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.InfoLevel
+		return lvl >= zapcore.DebugLevel
 	})
 	logFile := config.Conf.Section("APP").Key("LOG_FILE").String()
 	writer := zapcore.AddSync(&lumberjack.Logger{

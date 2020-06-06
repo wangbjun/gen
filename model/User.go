@@ -12,7 +12,7 @@ type User struct {
 
 func (u User) IsEmailExisted(email string) (bool, error) {
 	var user User
-	err := DB.Where("email = ?", email).First(&user).Error
+	err := DB().Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return false, nil

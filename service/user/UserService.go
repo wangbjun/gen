@@ -3,7 +3,7 @@ package user
 import (
 	"errors"
 	"fmt"
-	"gen/lib/function"
+	"gen/lib"
 	. "gen/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -51,15 +51,15 @@ func (u userService) Register(name string, email string, password string) (strin
 		return "", Existed
 	}
 	var user = User{}
-	salt := function.GetUuidV4()[24:]
+	salt := lib.GetUuidV4()[24:]
 	user.Name = name
 	user.Email = email
-	user.Password = function.Sha1([]byte(password + salt))
+	user.Password = lib.Sha1([]byte(password + salt))
 	user.Salt = salt
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	err = DB.Save(&user).Error
+	err = DB().Save(&user).Error
 	if err != nil {
 		return "", err
 	} else {
@@ -74,14 +74,14 @@ func (u userService) Register(name string, email string, password string) (strin
 
 func (u userService) Login(email string, password string) (string, error) {
 	var user User
-	err := DB.Where("email = ?", email).First(&user).Error
+	err := DB().Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", NotExisted
 		}
 		return "", err
 	}
-	if user.Password != function.Sha1([]byte(password+user.Salt)) {
+	if user.Password != lib.Sha1([]byte(password+user.Salt)) {
 		return "", PasswordWrong
 	} else {
 		token, err := u.createToken(user.ID)

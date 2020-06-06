@@ -30,90 +30,89 @@ var ArticleController = &articleController{
 }
 
 // 添加文章
-func (ac articleController) AddArticle(ctx *gin.Context) {
-	zlog.WithContext(ctx).Sugar().Debug("add at")
+func (r articleController) AddArticle(ctx *gin.Context) {
+	r.LogSugar(ctx).Debug("add new mArticle")
 	var (
 		title, _   = ctx.GetPostForm("title")
 		content, _ = ctx.GetPostForm("content")
 	)
 	if !govalidator.StringLength(title, "1", "100") {
-		ac.failed(ctx, ParamError, "标题长度1-100")
+		r.Failed(ctx, ParamError, "标题长度1-100")
 		return
 	}
 	if !govalidator.StringLength(content, "1", "2000") {
-		ac.failed(ctx, ParamError, "内容长度1-2000")
+		r.Failed(ctx, ParamError, "内容长度1-2000")
 		return
 	}
-	at := model.Article{}
-	at.Title = title
-	at.Content = content
-	at.UserID = uint(ctx.GetInt("userId"))
-	at.CreatedAt = time.Now()
-	at.UpdatedAt = time.Now()
+	mArticle := model.Article{}
+	mArticle.Title = title
+	mArticle.Content = content
+	mArticle.UserID = ctx.MustGet("userId").(uint)
+	mArticle.CreatedAt = time.Now()
+	mArticle.UpdatedAt = time.Now()
 
-	if id, err := ac.articleService.Add(&at); err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("add at failed, error: " + err.Error())
-		ac.failed(ctx, Failed, "添加文章失败")
+	if id, err := r.articleService.Add(&mArticle); err != nil {
+		r.LogSugar(ctx).Errorf("add mArticle Failed, error: " + err.Error())
+		r.Failed(ctx, Failed, "添加文章失败")
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("add at success，id: %d", id)
-		ac.success(ctx, "添加文章成功", gin.H{"id": id})
+		r.LogSugar(ctx).Debugf("add mArticle Success，id: %d", id)
+		r.Success(ctx, "添加文章成功", gin.H{"id": id})
 	}
-	return
 }
 
 // 修改文章
-func (ac articleController) EditArticle(ctx *gin.Context) {
-	zlog.WithContext(ctx).Sugar().Debug("edit at")
+func (r articleController) EditArticle(ctx *gin.Context) {
+	r.LogSugar(ctx).Debug("edit article")
 	var (
 		id, _      = strconv.Atoi(ctx.Param("id"))
 		title, _   = ctx.GetPostForm("title")
 		content, _ = ctx.GetPostForm("content")
 	)
 	if !govalidator.StringLength(title, "1", "100") {
-		ac.failed(ctx, ParamError, "标题长度1-100")
+		r.Failed(ctx, ParamError, "标题长度1-100")
 		return
 	}
 	if !govalidator.StringLength(content, "1", "2000") {
-		ac.failed(ctx, ParamError, "内容长度1-2000")
+		r.Failed(ctx, ParamError, "内容长度1-2000")
 		return
 	}
 	at := model.Article{}
 	at.Title = title
 	at.Content = content
-	at.UserID = uint(ctx.GetInt("userId"))
+	at.UserID = ctx.MustGet("userId").(uint)
 	at.UpdatedAt = time.Now()
-	if id, err := ac.articleService.Edit(uint(id), &at); err != nil {
-		zlog.WithContext(ctx).Error("edit at failed, error: " + err.Error())
+	if id, err := r.articleService.Edit(uint(id), &at); err != nil {
+		zlog.WithContext(ctx).Error("edit article Failed, error: " + err.Error())
 		if _, ok := err.(article.Error); ok {
-			ac.failed(ctx, NotFound, err.Error())
+			r.Failed(ctx, NotFound, err.Error())
 		} else {
-			ac.failed(ctx, Failed, "修改文章失败")
+			r.Failed(ctx, Failed, "修改文章失败")
 		}
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("edit at success，id: %d", id)
-		ac.success(ctx, "修改文章成功", gin.H{"id": id})
+		r.LogSugar(ctx).Debugf("edit article Success，id: %d", id)
+		r.Success(ctx, "修改文章成功", gin.H{"id": id})
 	}
 	return
 }
 
 // 文章详情
-func (ac articleController) GetArticle(ctx *gin.Context) {
+func (r articleController) GetArticle(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(ctx, ParamError, "id不能为空")
+		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	at, err := ac.articleService.Detail(uint(id))
+	at, err := r.articleService.Detail(uint(id))
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("get at failed，id: %d, error: %s", id, err.Error())
+		r.LogSugar(ctx).Errorf("get at Failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(article.Error); ok {
-			ac.failed(ctx, NotFound, err.Error())
+			r.Failed(ctx, NotFound, err.Error())
 		} else {
-			ac.failed(ctx, Failed, "获取文章失败")
+			r.Failed(ctx, Failed, "获取文章失败")
 		}
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("get at success，id: %d", id)
-		ac.success(ctx, "ok", articleResult{
+		r.LogSugar(ctx).Debugf("get at Success，id: %d", id)
+		r.Success(ctx, "ok", articleResult{
 			Id:        at.ID,
 			Title:     at.Title,
 			Content:   at.Content,
@@ -127,15 +126,15 @@ func (ac articleController) GetArticle(ctx *gin.Context) {
 }
 
 // 文章列表
-func (ac articleController) ListArticle(ctx *gin.Context) {
+func (r articleController) ListArticle(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.Param("page"))
 	if err != nil || page <= 0 {
 		page = 1
 	}
-	articles, err := ac.articleService.List(page)
+	articles, err := r.articleService.List(page)
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("list article failed，error: %s", err.Error())
-		ac.failed(ctx, Failed, "获取文章列表失败")
+		r.LogSugar(ctx).Errorf("list article Failed，error: %s", err.Error())
+		r.Failed(ctx, Failed, "获取文章列表失败")
 	} else {
 		var result []articleResult
 		for _, at := range articles {
@@ -150,76 +149,76 @@ func (ac articleController) ListArticle(ctx *gin.Context) {
 			})
 		}
 		if len(result) != 0 {
-			ac.success(ctx, "ok", result)
+			r.Success(ctx, "ok", result)
 		} else {
 			// 解决列表为空时，data为null的问题
-			ac.success(ctx, "ok", []string{})
+			r.Success(ctx, "ok", []string{})
 		}
 	}
 	return
 }
 
 // 删除文章
-func (ac articleController) DelArticle(ctx *gin.Context) {
+func (r articleController) DelArticle(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(ctx, ParamError, "id不能为空")
+		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	_, err = ac.articleService.Del(uint(id), uint(ctx.GetInt("userId")))
+	_, err = r.articleService.Del(uint(id), uint(ctx.GetInt("userId")))
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("del article failed，id: %d, error: %s", id, err.Error())
+		r.LogSugar(ctx).Errorf("del article Failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(article.Error); ok {
-			ac.failed(ctx, Failed, err.Error())
+			r.Failed(ctx, Failed, err.Error())
 		} else {
-			ac.failed(ctx, Failed, "删除失败")
+			r.Failed(ctx, Failed, "删除失败")
 		}
 	} else {
-		zlog.WithContext(ctx).Sugar().Debugf("del article success，id: %d", id)
-		ac.success(ctx, "删除成功", gin.H{"id": id})
+		r.LogSugar(ctx).Debugf("del article Success，id: %d", id)
+		r.Success(ctx, "删除成功", gin.H{"id": id})
 	}
 	return
 }
 
 // 新增评论
-func (ac articleController) AddComment(ctx *gin.Context) {
+func (r articleController) AddComment(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(ctx, ParamError, "id不能为空")
+		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
 	content, _ := ctx.GetPostForm("content")
 	if !govalidator.StringLength(content, "1", "500") {
-		ac.failed(ctx, ParamError, "评论长度1-500")
+		r.Failed(ctx, ParamError, "评论长度1-500")
 		return
 	}
-	comment, err := ac.articleService.AddComment(uint(id), uint(ctx.GetInt("userId")), content)
+	comment, err := r.articleService.AddComment(uint(id), uint(ctx.GetInt("userId")), content)
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("del article failed，id: %d, error: %s", id, err.Error())
+		r.LogSugar(ctx).Errorf("del article Failed，id: %d, error: %s", id, err.Error())
 		if _, ok := err.(article.Error); ok {
-			ac.failed(ctx, NotFound, err.Error())
+			r.Failed(ctx, NotFound, err.Error())
 		} else {
-			ac.failed(ctx, Failed, "评论失败")
+			r.Failed(ctx, Failed, "评论失败")
 		}
 	} else {
-		ac.success(ctx, "ok", comment)
+		r.Success(ctx, "ok", comment)
 	}
 	return
 }
 
 // 评论列表
-func (ac articleController) ListComment(ctx *gin.Context) {
+func (r articleController) ListComment(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
-		ac.failed(ctx, ParamError, "id不能为空")
+		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	comments, err := ac.articleService.ListComment(uint(id))
+	comments, err := r.articleService.ListComment(uint(id))
 	if err != nil {
-		zlog.WithContext(ctx).Sugar().Errorf("get article list failed，error: %s", err.Error())
-		ac.success(ctx, "ok", []string{})
+		r.LogSugar(ctx).Errorf("get article list Failed，error: %s", err.Error())
+		r.Success(ctx, "ok", []string{})
 	} else {
-		ac.success(ctx, "ok", comments)
+		r.Success(ctx, "ok", comments)
 	}
 	return
 }

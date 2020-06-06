@@ -38,7 +38,7 @@ var (
 )
 
 func (articleService) Add(article *Article) (uint, error) {
-	err := DB.Create(&article).Error
+	err := DB().Create(&article).Error
 	if err != nil {
 		return 0, err
 	}
@@ -47,7 +47,7 @@ func (articleService) Add(article *Article) (uint, error) {
 
 func (articleService) Edit(id uint, params *Article) (uint, error) {
 	var article Article
-	err := DB.Where("id = ?", id).Find(&article).Error
+	err := DB().Where("id = ?", id).Find(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return 0, NotFound
 	}
@@ -60,7 +60,7 @@ func (articleService) Edit(id uint, params *Article) (uint, error) {
 	article.Title = params.Title
 	article.Content = params.Content
 	article.UpdatedAt = time.Now()
-	err = DB.Save(&article).Error
+	err = DB().Save(&article).Error
 	if err != nil {
 		return 0, err
 	}
@@ -69,7 +69,7 @@ func (articleService) Edit(id uint, params *Article) (uint, error) {
 
 func (articleService) Detail(id uint) (*Article, error) {
 	var article Article
-	db := DB.Where("id = ?", id).Find(&article)
+	db := DB().Where("id = ?", id).Find(&article)
 	if gorm.IsRecordNotFoundError(db.Error) {
 		return nil, NotFound
 	}
@@ -90,7 +90,7 @@ func (articleService) Detail(id uint) (*Article, error) {
 func (articleService) List(page int) ([]*Article, error) {
 	var article []*Article
 	offset := (page - 1) * 10
-	err := DB.Limit(10).Offset(offset).Order("id desc").Find(&article).Error
+	err := DB().Limit(10).Offset(offset).Order("id desc").Find(&article).Error
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (articleService) List(page int) ([]*Article, error) {
 
 func (articleService) Del(id uint, userId uint) (bool, error) {
 	var article Article
-	err := DB.Where("id = ?", id).First(&article).Error
+	err := DB().Where("id = ?", id).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return false, NotFound
 	}
@@ -109,7 +109,7 @@ func (articleService) Del(id uint, userId uint) (bool, error) {
 	if article.UserID != userId {
 		return false, PermissionDenied
 	}
-	err = DB.Delete(&article).Error
+	err = DB().Delete(&article).Error
 	if err != nil {
 		return false, err
 	}
@@ -118,7 +118,7 @@ func (articleService) Del(id uint, userId uint) (bool, error) {
 
 func (a articleService) AddComment(id uint, userId uint, content string) (*Comment, error) {
 	var article Article
-	err := DB.Where("id = ?", id).First(&article).Error
+	err := DB().Where("id = ?", id).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, NotFound
 	}
@@ -131,7 +131,7 @@ func (a articleService) AddComment(id uint, userId uint, content string) (*Comme
 	comment.Content = content
 	comment.CreatedAt = time.Now()
 	comment.UpdatedAt = time.Now()
-	err = DB.Create(&comment).Error
+	err = DB().Create(&comment).Error
 	if err != nil {
 		return nil, err
 	} else {
@@ -141,7 +141,7 @@ func (a articleService) AddComment(id uint, userId uint, content string) (*Comme
 
 func (a articleService) ListComment(id uint) ([]*Comment, error) {
 	var comments []*Comment
-	err := DB.Where("article_id = ? and status = 0", id).Find(&comments).Error
+	err := DB().Where("article_id = ? and status = 0", id).Find(&comments).Error
 	if err != nil {
 		return nil, err
 	} else {

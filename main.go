@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(getMode())
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	// 加载路由
@@ -19,4 +19,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("server start failed, error: %s", err.Error())
 	}
+}
+
+func getMode() string {
+	debug := config.Conf.Section("APP").Key("DEBUG").String()
+	if debug == "true" {
+		return gin.DebugMode
+	}
+	return gin.ReleaseMode
 }

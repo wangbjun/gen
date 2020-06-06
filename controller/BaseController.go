@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"gen/lib/zlog"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
 )
@@ -21,14 +23,14 @@ var BaseController *Controller
 
 func init() {
 	BaseController = &Controller{}
-	log.Println("init all controller success")
+	log.Println("init all controller Success")
 }
 
 func (*Controller) Index(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "Gen Web")
 }
 
-func (*Controller) success(ctx *gin.Context, msg string, data interface{}) {
+func (*Controller) Success(ctx *gin.Context, msg string, data interface{}) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": Success,
 		"msg":  msg,
@@ -36,9 +38,13 @@ func (*Controller) success(ctx *gin.Context, msg string, data interface{}) {
 	})
 }
 
-func (*Controller) failed(ctx *gin.Context, code int, msg string) {
+func (*Controller) Failed(ctx *gin.Context, code int, msg string) {
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  msg,
 	})
+}
+
+func (*Controller) LogSugar(ctx *gin.Context) *zap.SugaredLogger {
+	return zlog.WithContext(ctx).Sugar()
 }
