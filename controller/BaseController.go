@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"gen/lib/zlog"
+	"gen/zlog"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"log"

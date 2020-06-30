@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"gen/lib/zlog"
 	"gen/service/user"
+	"gen/zlog"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )

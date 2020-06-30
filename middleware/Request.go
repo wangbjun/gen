@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"gen/lib"
-	"gen/lib/zlog"
+	"gen/util"
+	"gen/zlog"
 	"github.com/gin-gonic/gin"
 	"time"
 )
@@ -12,7 +12,7 @@ import (
  */
 func Request() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Set("traceId", lib.GetUuid())
+		ctx.Set("traceId", util.GetUuid())
 		ctx.Set("startTime", time.Now())
 		ctx.Set("parentId", ctx.GetHeader("X-Ca-TraceId"))
 

@@ -2,8 +2,8 @@ package article
 
 import (
 	"errors"
-	"gen/lib/zlog"
 	. "gen/model"
+	"gen/zlog"
 	"github.com/jinzhu/gorm"
 	"time"
 )

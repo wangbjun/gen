@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"gen/lib/zlog"
 	"gen/model"
 	"gen/service/article"
+	"gen/zlog"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -58,6 +58,7 @@ func (r articleController) AddArticle(ctx *gin.Context) {
 		r.LogSugar(ctx).Debugf("add mArticle Success，id: %d", id)
 		r.Success(ctx, "添加文章成功", gin.H{"id": id})
 	}
+	return
 }
 
 // 修改文章
@@ -136,7 +137,7 @@ func (r articleController) ListArticle(ctx *gin.Context) {
 		r.LogSugar(ctx).Errorf("list article Failed，error: %s", err.Error())
 		r.Failed(ctx, Failed, "获取文章列表失败")
 	} else {
-		var result []articleResult
+		var result = make([]articleResult, 0)
 		for _, at := range articles {
 			result = append(result, articleResult{
 				Id:        at.ID,
@@ -148,12 +149,7 @@ func (r articleController) ListArticle(ctx *gin.Context) {
 				UpdatedAt: at.UpdatedAt.Format("2006-01-02 15:04:05"),
 			})
 		}
-		if len(result) != 0 {
-			r.Success(ctx, "ok", result)
-		} else {
-			// 解决列表为空时，data为null的问题
-			r.Success(ctx, "ok", []string{})
-		}
+		r.Success(ctx, "ok", result)
 	}
 	return
 }

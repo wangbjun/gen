@@ -2,7 +2,7 @@ package model
 
 import (
 	"gen/config"
-	"gen/lib/zlog"
+	"gen/zlog"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"log"
