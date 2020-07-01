@@ -17,10 +17,11 @@ func WithContext(ctx *gin.Context) *zap.Logger {
 }
 
 func init() {
-	infoLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.DebugLevel
-	})
-	logFile := config.Conf.Section("APP").Key("LOG_FILE").String()
+	var logLevel zapcore.Level
+	if logLevel.UnmarshalText([]byte(config.GetAPP("LOG_LEVEL").String())) != nil {
+		logLevel = zapcore.InfoLevel
+	}
+	logFile := config.GetAPP("LOG_FILE").String()
 	writer := zapcore.AddSync(&lumberjack.Logger{
 		Filename:   logFile,
 		MaxSize:    500, // megabytes
@@ -43,7 +44,7 @@ func init() {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	})
 
-	core := zapcore.NewTee(zapcore.NewCore(jsonEncoder, sync, infoLevel))
+	core := zapcore.NewTee(zapcore.NewCore(jsonEncoder, sync, logLevel))
 
 	logger := zap.New(core, zap.AddCaller())
 	defer logger.Sync()

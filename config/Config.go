@@ -37,3 +37,7 @@ func init() {
 	Conf = conf
 	log.Println("init config file success")
 }
+
+func GetAPP(name string) *ini.Key {
+	return Conf.Section("APP").Key(name)
+}

@@ -49,7 +49,7 @@ func openConnection(conf map[string]string) (*gorm.DB, error) {
 	open, _ := strconv.Atoi(conf["maxOpenConns"])
 	db.DB().SetMaxIdleConns(idle)
 	db.DB().SetMaxOpenConns(open)
-	if config.Conf.Section("APP").Key("DEBUG").String() == "true" {
+	if config.GetAPP("DEBUG").String() == "true" {
 		db.LogMode(true)
 		db.SetLogger(new(zlog.SqlLog))
 	}

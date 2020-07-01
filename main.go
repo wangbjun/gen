@@ -15,14 +15,14 @@ func main() {
 	router.Route(engine)
 	// 启动服务器
 	log.Println("server started success")
-	err := engine.Run(":" + config.Conf.Section("APP").Key("PORT").String())
+	err := engine.Run(":" + config.GetAPP("PORT").String())
 	if err != nil {
 		log.Fatalf("server start failed, error: %s", err.Error())
 	}
 }
 
 func getMode() string {
-	debug := config.Conf.Section("APP").Key("DEBUG").String()
+	debug := config.GetAPP("DEBUG").String()
 	if debug == "true" {
 		return gin.DebugMode
 	}
