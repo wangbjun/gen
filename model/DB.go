@@ -24,15 +24,15 @@ func init() {
 }
 
 func DB() *gorm.DB {
-	conn, ok := dbConnections["default"]
-	if !ok {
-		return nil
-	}
-	return conn
+	return GetDB("default")
 }
 
 func UserDB() *gorm.DB {
-	conn, ok := dbConnections["user"]
+	return GetDB("user")
+}
+
+func GetDB(name string) *gorm.DB {
+	conn, ok := dbConnections[name]
 	if !ok {
 		return nil
 	}
