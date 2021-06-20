@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
+	"gen/api/trans"
 	"gen/log"
 	"gen/models"
-	"gen/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -14,7 +14,7 @@ type userController struct {
 }
 
 var UserController = &userController{
-	httpServer,
+	HttpServer,
 }
 
 // Register 用户注册
@@ -23,7 +23,7 @@ func (r userController) Register(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, utils.Translate(e))
+			r.Failed(ctx, ParamError, trans.Translate(e))
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}
@@ -44,7 +44,7 @@ func (r userController) Login(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, utils.Translate(e))
+			r.Failed(ctx, ParamError, trans.Translate(e))
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}

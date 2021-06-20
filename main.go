@@ -34,8 +34,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-
 	go listenToSystemSignals(ctx, s)
+
 	if err := s.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to run server: %s\n", err)
 		os.Exit(-1)
@@ -44,9 +44,7 @@ func main() {
 
 func listenToSystemSignals(ctx context.Context, s *server.Server) {
 	signalChan := make(chan os.Signal, 1)
-
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
-
 	for {
 		select {
 		case sig := <-signalChan:

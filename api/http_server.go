@@ -25,25 +25,25 @@ const (
 	NotLogin     = 405 //未登录
 )
 
-var httpServer = &HTTPServer{}
+var HttpServer = &HTTPServer{}
 
 func init() {
 	registry.Register(&registry.Descriptor{
 		Name:         "HTTPServer",
-		Instance:     httpServer,
+		Instance:     HttpServer,
 		InitPriority: registry.High,
 	})
 }
 
 type HTTPServer struct {
 	log     *zap.Logger
-	gin     *gin.Engine
+	Gin     *gin.Engine
 	context context.Context
 
-	Bus            bus.Bus          `inject:""`
-	Cfg            *config.Cfg      `inject:""`
-	ArticleService *article.Service `inject:""`
-	UserService    *user.Service    `inject:""`
+	Bus            bus.Bus                 `inject:""`
+	Cfg            *config.Cfg             `inject:""`
+	ArticleService *article.ArticleService `inject:""`
+	UserService    *user.UserService       `inject:""`
 }
 
 func (hs *HTTPServer) Init() error {
@@ -55,9 +55,14 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 
 	gin.SetMode(hs.getMode())
 	engine := gin.New()
-	engine.Use(gin.Recovery())
+	engine.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
+		c.AbortWithStatusJSON(http.StatusOK, gin.H{
+			"code": 500,
+			"msg":  "服务器内部错误，请稍后再试！",
+		})
+	}))
 
-	hs.gin = engine
+	hs.Gin = engine
 	hs.context = ctx
 
 	LoadRouter(hs) // 加载路由

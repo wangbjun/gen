@@ -1,16 +1,16 @@
-package api
+package middleware
 
 import (
 	"fmt"
 	"gen/log"
+	"gen/services/user"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 )
 
 // AuthMiddleware 用户鉴权
-func AuthMiddleware(hs *HTTPServer) gin.HandlerFunc {
-	user := hs.UserService
+func AuthMiddleware(user *user.UserService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 		if token == "" {

@@ -68,7 +68,7 @@ func Configure(cfg *ini.File) {
 		core = zapcore.NewTee(zapcore.NewCore(
 			zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(writer), level))
 	}
-	Logger = zap.New(core, zap.AddCaller())
+	Logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
 func Debug(msg string, fields ...zapcore.Field) {

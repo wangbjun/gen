@@ -1,6 +1,7 @@
 package api
 
 import (
+	"gen/api/trans"
 	"gen/log"
 	"gen/models"
 	"gen/utils"
@@ -13,7 +14,7 @@ type articleController struct {
 	*HTTPServer
 }
 
-var ArticleController = &articleController{httpServer}
+var ArticleController = &articleController{HttpServer}
 
 // CreateArticle 添加文章
 func (r *articleController) CreateArticle(ctx *gin.Context) {
@@ -21,7 +22,7 @@ func (r *articleController) CreateArticle(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, utils.Translate(e))
+			r.Failed(ctx, ParamError, trans.Translate(e))
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}
@@ -46,7 +47,7 @@ func (r articleController) EditArticle(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, utils.Translate(e))
+			r.Failed(ctx, ParamError, trans.Translate(e))
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}
@@ -139,7 +140,7 @@ func (r articleController) AddComment(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, utils.Translate(e))
+			r.Failed(ctx, ParamError, trans.Translate(e))
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}

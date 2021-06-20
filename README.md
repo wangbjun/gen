@@ -1,6 +1,7 @@
 # Gen Web
 
 ## 介绍
+
 基于Gin微框架封装的MVC Web框架demo，方便快速开发，主要使用以下开源组件：
 
 * [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin)
@@ -27,4 +28,5 @@
 |POST|/api/v1/user/logout|用户登出
 
 ## 使用
+
 项目使用 go module，建议git clone 到本地执行```go mod download```下载相关依赖，然后执行 storage/databases 目录下的sql，然后打开 app.ini 文件配置好数据库即可！

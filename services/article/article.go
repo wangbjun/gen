@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-type Service struct {
+type ArticleService struct {
 	SQLStore *SQLStore `inject:""`
 }
 
 func init() {
-	registry.RegisterService(&Service{})
+	registry.RegisterService(&ArticleService{})
 }
 
 var (
@@ -23,11 +23,11 @@ var (
 	PermissionDenied = errors.New("没有权限")
 )
 
-func (r Service) Init() error {
+func (r ArticleService) Init() error {
 	return nil
 }
 
-func (r Service) Create(userId uint, form *ArticleCreateForm) (uint, error) {
+func (r ArticleService) Create(userId uint, form *ArticleCreateForm) (uint, error) {
 	article := Article{
 		Title:   form.Title,
 		Content: form.Content,
@@ -43,7 +43,7 @@ func (r Service) Create(userId uint, form *ArticleCreateForm) (uint, error) {
 	return article.Id, nil
 }
 
-func (r Service) Edit(userId uint, param *ArticleUpdateForm) (uint, error) {
+func (r ArticleService) Edit(userId uint, param *ArticleUpdateForm) (uint, error) {
 	var article Article
 	err := r.SQLStore.DB().Where("id = ?", param.Id).Find(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
@@ -65,7 +65,7 @@ func (r Service) Edit(userId uint, param *ArticleUpdateForm) (uint, error) {
 	return article.Id, nil
 }
 
-func (r Service) Detail(id uint) (*Article, error) {
+func (r ArticleService) Detail(id uint) (*Article, error) {
 	var article Article
 	db := r.SQLStore.DB().Where("id = ?", id).Find(&article)
 	if gorm.IsRecordNotFoundError(db.Error) {
@@ -85,7 +85,7 @@ func (r Service) Detail(id uint) (*Article, error) {
 	return &article, nil
 }
 
-func (r Service) List(page int) ([]*Article, error) {
+func (r ArticleService) List(page int) ([]*Article, error) {
 	var article []*Article
 	offset := (page - 1) * 10
 	err := r.SQLStore.DB().Limit(10).Offset(offset).
@@ -96,7 +96,7 @@ func (r Service) List(page int) ([]*Article, error) {
 	return article, nil
 }
 
-func (r Service) Del(id int, userId uint) (bool, error) {
+func (r ArticleService) Del(id int, userId uint) (bool, error) {
 	var article Article
 	err := r.SQLStore.DB().Where("id = ?", id).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
@@ -115,7 +115,7 @@ func (r Service) Del(id int, userId uint) (bool, error) {
 	return true, nil
 }
 
-func (r Service) AddComment(userId uint, param *ArticleAddCommentForm) error {
+func (r ArticleService) AddComment(userId uint, param *ArticleAddCommentForm) error {
 	var article Article
 	err := r.SQLStore.DB().Where("id = ?", param.ArticleId).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
@@ -138,7 +138,7 @@ func (r Service) AddComment(userId uint, param *ArticleAddCommentForm) error {
 	}
 }
 
-func (r Service) ListComment(ArticleId uint) ([]*Comment, error) {
+func (r ArticleService) ListComment(ArticleId uint) ([]*Comment, error) {
 	var comments []*Comment
 	err := r.SQLStore.DB().Where("article_id = ?", ArticleId).Find(&comments).Error
 	if err != nil {

@@ -20,19 +20,19 @@ var (
 	LoginFailed   = errors.New("登录失败")
 )
 
-type Service struct {
+type UserService struct {
 	SQLStore *SQLStore `inject:""`
 }
 
 func init() {
-	registry.RegisterService(&Service{})
+	registry.RegisterService(&UserService{})
 }
 
-func (r Service) Init() error {
+func (r UserService) Init() error {
 	return nil
 }
 
-func (r Service) Register(param *UserRegisterForm) (string, error) {
+func (r UserService) Register(param *UserRegisterForm) (string, error) {
 	emailExisted, err := IsUserEmailExisted(param.Email)
 	if err != nil {
 		return "", err
@@ -62,7 +62,7 @@ func (r Service) Register(param *UserRegisterForm) (string, error) {
 	}
 }
 
-func (r Service) Login(param *UserLoginForm) (string, error) {
+func (r UserService) Login(param *UserLoginForm) (string, error) {
 	var user User
 	err := r.SQLStore.DB().Where("email = ?", param.Email).First(&user).Error
 	if err != nil {
@@ -84,7 +84,7 @@ func (r Service) Login(param *UserLoginForm) (string, error) {
 }
 
 // ParseToken 解析token
-func (r Service) ParseToken(tokenString string) (uint, error) {
+func (r UserService) ParseToken(tokenString string) (uint, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -102,7 +102,7 @@ func (r Service) ParseToken(tokenString string) (uint, error) {
 }
 
 // 创建token
-func (r Service) createToken(userId uint) (string, error) {
+func (r UserService) createToken(userId uint) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
 		"exp":    time.Now().Add(time.Hour * 24).Unix(),

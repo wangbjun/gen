@@ -72,7 +72,7 @@ func New() Bus {
 	return bus
 }
 
-// Want to get rid of global bus
+// GetBus Want to get rid of global bus
 func GetBus() Bus {
 	return globalBus
 }
@@ -96,7 +96,7 @@ func (b *InProcBus) DispatchCtx(ctx context.Context, msg Msg) error {
 		return ErrHandlerNotFound
 	}
 
-	var params = []reflect.Value{}
+	var params []reflect.Value
 	params = append(params, reflect.ValueOf(ctx))
 	params = append(params, reflect.ValueOf(msg))
 
@@ -122,7 +122,7 @@ func (b *InProcBus) Dispatch(msg Msg) error {
 		}
 	}
 
-	var params = []reflect.Value{}
+	var params []reflect.Value
 	if withCtx {
 		params = append(params, reflect.ValueOf(context.Background()))
 	}

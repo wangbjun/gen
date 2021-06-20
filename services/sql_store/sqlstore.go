@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const ServiceName = "SqlStore"
@@ -46,13 +47,11 @@ func (ss *SQLStore) Init() error {
 	return nil
 }
 
-func (ss *SQLStore) DB() *gorm.DB {
-	return db
-}
-
-func (ss *SQLStore) Use(dbName string) *gorm.DB {
-	if conn, ok := ss.conns[dbName]; ok {
-		db = conn
+func (ss *SQLStore) DB(dbName ...string) *gorm.DB {
+	if len(dbName) > 0 {
+		if conn, ok := ss.conns[dbName[0]]; ok {
+			return conn
+		}
 	}
 	return db
 }
@@ -87,7 +86,7 @@ func (ss *SQLStore) initChildConns() error {
 		if err != nil {
 			return fmt.Errorf("open connection failed, error: %s", err.Error())
 		}
-		ss.conns[section.Name()] = conn
+		ss.conns[strings.TrimLeft(section.Name(), "db.")] = conn
 	}
 	return nil
 }
