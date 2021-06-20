@@ -3,8 +3,10 @@ package api
 import (
 	"fmt"
 	"gen/log"
-	"github.com/asaskevich/govalidator"
+	"gen/models"
+	"gen/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type userController struct {
@@ -17,27 +19,20 @@ var UserController = &userController{
 
 // Register 用户注册
 func (r userController) Register(ctx *gin.Context) {
-	name := ctx.PostForm("name")
-	if !govalidator.StringLength(name, "1", "10") {
-		r.Failed(ctx, ParamError, "名称长度不正确1-10")
-		return
-	}
-	email := ctx.PostForm("email")
-	if !govalidator.IsEmail(email) {
-		r.Failed(ctx, ParamError, "邮箱不正确")
-		return
-	}
-	password := ctx.PostForm("password")
-	if !govalidator.StringLength(password, "6", "16") {
-		r.Failed(ctx, ParamError, "密码长度不正确6-16")
-		return
-	}
-	token, err := r.HTTPServer.UserService.Register(name, email, password)
+	var form models.UserRegisterForm
+	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
-		log.Error(fmt.Sprintf("r register Failed, error: %s", err.Error()))
-		r.Failed(ctx, Failed, "注册失败")
+		if e, ok := err.(validator.ValidationErrors); ok {
+			r.Failed(ctx, ParamError, utils.Translate(e))
+		} else {
+			r.Failed(ctx, Failed, "请求错误")
+		}
+		return
+	}
+	token, err := r.HTTPServer.UserService.Register(&form)
+	if err != nil {
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		log.Info(fmt.Sprintf("register r Success, email: %s", email))
 		r.Success(ctx, "ok", gin.H{"token": token})
 	}
 	return
@@ -45,22 +40,20 @@ func (r userController) Register(ctx *gin.Context) {
 
 // Login 用户登录
 func (r userController) Login(ctx *gin.Context) {
-	email := ctx.PostForm("email")
-	if !govalidator.IsEmail(email) {
-		r.Failed(ctx, ParamError, "邮箱不正确")
-		return
-	}
-	password := ctx.PostForm("password")
-	if !govalidator.StringLength(password, "6", "16") {
-		r.Failed(ctx, ParamError, "密码长度不正确6-16")
-		return
-	}
-	token, err := r.HTTPServer.UserService.Login(email, password)
+	var form models.UserLoginForm
+	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
-		log.Error(fmt.Sprintf("r register Failed, error: %s", err.Error()))
-		r.Failed(ctx, Failed, "登录失败")
+		if e, ok := err.(validator.ValidationErrors); ok {
+			r.Failed(ctx, ParamError, utils.Translate(e))
+		} else {
+			r.Failed(ctx, Failed, "请求错误")
+		}
+		return
+	}
+	token, err := r.HTTPServer.UserService.Login(&form)
+	if err != nil {
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		log.Info(fmt.Sprintf("login r Success, email: %s", email))
 		r.Success(ctx, "ok", gin.H{"token": token})
 	}
 	return

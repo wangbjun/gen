@@ -32,8 +32,8 @@ func (r Service) Init() error {
 	return nil
 }
 
-func (r Service) Register(name string, email string, password string) (string, error) {
-	emailExisted, err := IsUserEmailExisted(email)
+func (r Service) Register(param *UserRegisterForm) (string, error) {
+	emailExisted, err := IsUserEmailExisted(param.Email)
 	if err != nil {
 		return "", err
 	}
@@ -42,9 +42,9 @@ func (r Service) Register(name string, email string, password string) (string, e
 	}
 	var user = User{}
 	salt := utils.GetUuidV4()[24:]
-	user.Name = name
-	user.Email = email
-	user.Password = utils.Sha1([]byte(password + salt))
+	user.Name = param.Name
+	user.Email = param.Email
+	user.Password = utils.Sha1([]byte(param.Password + salt))
 	user.Salt = salt
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -53,7 +53,7 @@ func (r Service) Register(name string, email string, password string) (string, e
 	if err != nil {
 		return "", err
 	} else {
-		token, err := r.createToken(user.ID)
+		token, err := r.createToken(user.Id)
 		if err != nil {
 			return "", err
 		} else {
@@ -62,19 +62,19 @@ func (r Service) Register(name string, email string, password string) (string, e
 	}
 }
 
-func (r Service) Login(email string, password string) (string, error) {
+func (r Service) Login(param *UserLoginForm) (string, error) {
 	var user User
-	err := r.SQLStore.DB().Where("email = ?", email).First(&user).Error
+	err := r.SQLStore.DB().Where("email = ?", param.Email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", NotExisted
 		}
 		return "", err
 	}
-	if user.Password != utils.Sha1([]byte(password+user.Salt)) {
+	if user.Password != utils.Sha1([]byte(param.Password+user.Salt)) {
 		return "", PasswordWrong
 	} else {
-		token, err := r.createToken(user.ID)
+		token, err := r.createToken(user.Id)
 		if err != nil {
 			return "", LoginFailed
 		} else {

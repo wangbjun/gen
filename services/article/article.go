@@ -27,34 +27,42 @@ func (r Service) Init() error {
 	return nil
 }
 
-func (r Service) Add(article *Article) (uint, error) {
+func (r Service) Create(userId uint, form *ArticleCreateForm) (uint, error) {
+	article := Article{
+		Title:   form.Title,
+		Content: form.Content,
+		UserId:  userId,
+	}
+	article.CreatedAt = time.Now()
+	article.UpdatedAt = time.Now()
+
 	err := r.SQLStore.DB().Create(&article).Error
 	if err != nil {
 		return 0, err
 	}
-	return article.ID, nil
+	return article.Id, nil
 }
 
-func (r Service) Edit(id uint, params *Article) (uint, error) {
+func (r Service) Edit(userId uint, param *ArticleUpdateForm) (uint, error) {
 	var article Article
-	err := r.SQLStore.DB().Where("id = ?", id).Find(&article).Error
+	err := r.SQLStore.DB().Where("id = ?", param.Id).Find(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return 0, NotFound
 	}
 	if err != nil {
 		return 0, err
 	}
-	if article.UserID != params.UserID {
+	if article.UserId != userId {
 		return 0, PermissionDenied
 	}
-	article.Title = params.Title
-	article.Content = params.Content
+	article.Title = param.Title
+	article.Content = param.Content
 	article.UpdatedAt = time.Now()
 	err = r.SQLStore.DB().Save(&article).Error
 	if err != nil {
 		return 0, err
 	}
-	return article.ID, nil
+	return article.Id, nil
 }
 
 func (r Service) Detail(id uint) (*Article, error) {
@@ -80,14 +88,15 @@ func (r Service) Detail(id uint) (*Article, error) {
 func (r Service) List(page int) ([]*Article, error) {
 	var article []*Article
 	offset := (page - 1) * 10
-	err := r.SQLStore.DB().Limit(10).Offset(offset).Order("id desc").Find(&article).Error
+	err := r.SQLStore.DB().Limit(10).Offset(offset).
+		Order("id desc").Find(&article).Error
 	if err != nil {
 		return nil, err
 	}
 	return article, nil
 }
 
-func (r Service) Del(id uint, userId uint) (bool, error) {
+func (r Service) Del(id int, userId uint) (bool, error) {
 	var article Article
 	err := r.SQLStore.DB().Where("id = ?", id).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
@@ -96,7 +105,7 @@ func (r Service) Del(id uint, userId uint) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if article.UserID != userId {
+	if article.UserId != userId {
 		return false, PermissionDenied
 	}
 	err = r.SQLStore.DB().Delete(&article).Error
@@ -106,32 +115,32 @@ func (r Service) Del(id uint, userId uint) (bool, error) {
 	return true, nil
 }
 
-func (r Service) AddComment(id uint, userId uint, content string) (*Comment, error) {
+func (r Service) AddComment(userId uint, param *ArticleAddCommentForm) error {
 	var article Article
-	err := r.SQLStore.DB().Where("id = ?", id).First(&article).Error
+	err := r.SQLStore.DB().Where("id = ?", param.ArticleId).First(&article).Error
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, NotFound
+		return NotFound
 	}
 	if err != nil {
-		return nil, nil
+		return err
 	}
 	comment := Comment{}
-	comment.UserID = userId
-	comment.ArticleId = id
-	comment.Content = content
+	comment.UserId = userId
+	comment.ArticleId = param.ArticleId
+	comment.Content = param.Content
 	comment.CreatedAt = time.Now()
 	comment.UpdatedAt = time.Now()
 	err = r.SQLStore.DB().Create(&comment).Error
 	if err != nil {
-		return nil, err
+		return err
 	} else {
-		return &comment, nil
+		return nil
 	}
 }
 
-func (r Service) ListComment(id uint) ([]*Comment, error) {
+func (r Service) ListComment(ArticleId uint) ([]*Comment, error) {
 	var comments []*Comment
-	err := r.SQLStore.DB().Where("article_id = ? and status = 0", id).Find(&comments).Error
+	err := r.SQLStore.DB().Where("article_id = ?", ArticleId).Find(&comments).Error
 	if err != nil {
 		return nil, err
 	} else {

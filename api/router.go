@@ -8,11 +8,11 @@ func LoadRouter(hs *HTTPServer) {
 		v1 := r.Group("/v1")
 		{
 			v1.Group("/articles").
-				GET("/", ArticleController.ListArticle).  //文章列表
+				GET("", ArticleController.ListArticle).   //文章列表
 				GET("/:id", ArticleController.GetArticle) //文章详情
 
 			v1.Group("/articles").Use(AuthMiddleware(hs)).
-				POST("/", ArticleController.AddArticle).             //添加文章
+				POST("", ArticleController.CreateArticle).           //添加文章
 				POST("/:id", ArticleController.EditArticle).         //修改文章
 				DELETE("/:id", ArticleController.DelArticle).        //删除文章
 				POST("/:id/comments", ArticleController.AddComment). //添加评论
