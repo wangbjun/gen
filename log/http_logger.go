@@ -1,15 +1,17 @@
-package zlog
+package log
 
 import (
 	"net/http"
 	"time"
 )
 
-// 在默认http client基础上增加日志功能
-var HttpLoggerTransport = &loggedRoundTripper{http.DefaultTransport}
-
 type loggedRoundTripper struct {
 	rt http.RoundTripper
+}
+
+// GetHttpLoggerTransport 在默认http client基础上增加日志功能
+func GetHttpLoggerTransport() *loggedRoundTripper {
+	return &loggedRoundTripper{http.DefaultTransport}
 }
 
 func (c *loggedRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {

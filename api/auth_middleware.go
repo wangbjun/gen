@@ -1,16 +1,16 @@
-package middleware
+package api
 
 import (
-	"gen/service/user"
-	"gen/zlog"
+	"fmt"
+	"gen/log"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 )
 
-// 用户鉴权
-func Auth() gin.HandlerFunc {
-	us := user.New()
+// AuthMiddleware 用户鉴权
+func AuthMiddleware(hs *HTTPServer) gin.HandlerFunc {
+	user := hs.UserService
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 		if token == "" {
@@ -20,13 +20,13 @@ func Auth() gin.HandlerFunc {
 			})
 			return
 		}
-		userId, err := us.ParseToken(strings.TrimSpace(strings.Trim(token, "Bearer")))
+		userId, err := user.ParseToken(strings.TrimSpace(strings.Trim(token, "Bearer")))
 		if err == nil && userId > 0 {
-			zlog.WithContext(ctx).Sugar().Debugf("parse token success, userId: %d", userId)
+			log.Info(fmt.Sprintf("Parse token success, userId: %d", userId))
 			ctx.Set("userId", userId)
 			ctx.Next()
 		} else {
-			zlog.WithContext(ctx).Sugar().Errorf("parse token failed, error: %s", err)
+			log.Error(fmt.Sprintf("Parse token failed, error: %s", err))
 			ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 				"code": 405,
 				"msg":  "用户Token无效",

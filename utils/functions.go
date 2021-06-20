@@ -1,4 +1,4 @@
-package util
+package utils
 
 import (
 	"crypto/md5"
@@ -12,21 +12,19 @@ import (
 	"io"
 )
 
-//md5
 func MD5(str []byte) string {
 	h := md5.New()
 	h.Write(str)
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-//sha1
 func Sha1(str []byte) string {
 	h := sha1.New()
 	h.Write(str)
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-//计算文件hash
+// FileHash 计算文件hash
 func FileHash(reader io.Reader, tp string) string {
 	var result []byte
 	var h hash.Hash
@@ -57,7 +55,7 @@ func Decrypt(dst, key, iv []byte) (string, error) {
 	return string(result), nil
 }
 
-//生成uuid
+// GetUuid 生成uuid
 func GetUuid() string {
 	var u uuid.UUID
 	var err error
@@ -70,7 +68,7 @@ func GetUuid() string {
 	return ""
 }
 
-//生成uuid v4
+// GetUuidV4 生成uuid v4
 func GetUuidV4() string {
 	var u uuid.UUID
 	var err error

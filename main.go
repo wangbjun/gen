@@ -1,30 +1,61 @@
 package main
 
 import (
-	"gen/config"
-	"gen/router"
-	"github.com/gin-gonic/gin"
-	"log"
+	"context"
+	"flag"
+	"fmt"
+	"gen/log"
+	"gen/server"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
-	gin.SetMode(getMode())
-	engine := gin.New()
-	engine.Use(gin.Recovery())
-	// 加载路由
-	router.Route(engine)
-	// 启动服务器
-	log.Println("server started success")
-	err := engine.Run(":" + config.GetAPP("PORT").String())
+	var (
+		configFile = flag.String("config", "app.ini", "path to config file")
+	)
+	flag.Parse()
+
+	defer func() {
+		if err := log.Logger.Sync(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close log: %s\n", err)
+		}
+	}()
+
+	s, err := server.New(server.Config{
+		ConfigFile: *configFile,
+	})
+
 	if err != nil {
-		log.Fatalf("server start failed, error: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Failed to start server: %s\n", err)
+		os.Exit(-1)
+	}
+
+	ctx := context.Background()
+
+	go listenToSystemSignals(ctx, s)
+	if err := s.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to run server: %s\n", err)
+		os.Exit(-1)
 	}
 }
 
-func getMode() string {
-	debug := config.GetAPP("DEBUG").String()
-	if debug == "true" {
-		return gin.DebugMode
+func listenToSystemSignals(ctx context.Context, s *server.Server) {
+	signalChan := make(chan os.Signal, 1)
+
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+
+	for {
+		select {
+		case sig := <-signalChan:
+			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			if err := s.Shutdown(ctx, fmt.Sprintf("System signal: %s", sig)); err != nil {
+				fmt.Fprintf(os.Stderr, "Timed out waiting for server to shutdown\n")
+			}
+			cancel()
+			return
+		}
 	}
-	return gin.ReleaseMode
 }

@@ -3,47 +3,37 @@ package user
 import (
 	"errors"
 	"fmt"
-	. "gen/model"
-	"gen/util"
+	. "gen/models"
+	"gen/registry"
+	. "gen/services/sql_store"
+	"gen/utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"time"
 )
 
-type Error struct {
-	error
-}
-
-func userError(err string) Error {
-	return Error{errors.New(err)}
-}
-
 var (
 	Secret        = []byte("@fc6951544^f55c644!@0d")
-	Existed       = userError("邮箱已存在")
-	NotExisted    = userError("邮箱不存在")
-	PasswordWrong = userError("邮箱或密码错误")
-	LoginFailed   = userError("登录失败")
+	Existed       = errors.New("邮箱已存在")
+	NotExisted    = errors.New("邮箱不存在")
+	PasswordWrong = errors.New("邮箱或密码错误")
+	LoginFailed   = errors.New("登录失败")
 )
 
-type Service interface {
-	Register(name string, email string, password string) (string, error)
-	Login(email string, password string) (string, error)
-	ParseToken(string) (uint, error)
+type Service struct {
+	SQLStore *SQLStore `inject:""`
 }
 
-type userService struct {
-	user *User
+func init() {
+	registry.RegisterService(&Service{})
 }
 
-func New() Service {
-	return &userService{
-		user: &User{},
-	}
+func (r Service) Init() error {
+	return nil
 }
 
-func (u userService) Register(name string, email string, password string) (string, error) {
-	emailExisted, err := u.user.IsEmailExisted(email)
+func (r Service) Register(name string, email string, password string) (string, error) {
+	emailExisted, err := IsUserEmailExisted(email)
 	if err != nil {
 		return "", err
 	}
@@ -51,19 +41,19 @@ func (u userService) Register(name string, email string, password string) (strin
 		return "", Existed
 	}
 	var user = User{}
-	salt := util.GetUuidV4()[24:]
+	salt := utils.GetUuidV4()[24:]
 	user.Name = name
 	user.Email = email
-	user.Password = util.Sha1([]byte(password + salt))
+	user.Password = utils.Sha1([]byte(password + salt))
 	user.Salt = salt
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	err = DB().Save(&user).Error
+	err = r.SQLStore.DB().Save(&user).Error
 	if err != nil {
 		return "", err
 	} else {
-		token, err := u.createToken(user.ID)
+		token, err := r.createToken(user.ID)
 		if err != nil {
 			return "", err
 		} else {
@@ -72,19 +62,19 @@ func (u userService) Register(name string, email string, password string) (strin
 	}
 }
 
-func (u userService) Login(email string, password string) (string, error) {
+func (r Service) Login(email string, password string) (string, error) {
 	var user User
-	err := DB().Where("email = ?", email).First(&user).Error
+	err := r.SQLStore.DB().Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return "", NotExisted
 		}
 		return "", err
 	}
-	if user.Password != util.Sha1([]byte(password+user.Salt)) {
+	if user.Password != utils.Sha1([]byte(password+user.Salt)) {
 		return "", PasswordWrong
 	} else {
-		token, err := u.createToken(user.ID)
+		token, err := r.createToken(user.ID)
 		if err != nil {
 			return "", LoginFailed
 		} else {
@@ -93,8 +83,8 @@ func (u userService) Login(email string, password string) (string, error) {
 	}
 }
 
-// 解析token
-func (u userService) ParseToken(tokenString string) (uint, error) {
+// ParseToken 解析token
+func (r Service) ParseToken(tokenString string) (uint, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -112,7 +102,7 @@ func (u userService) ParseToken(tokenString string) (uint, error) {
 }
 
 // 创建token
-func (u userService) createToken(userId uint) (string, error) {
+func (r Service) createToken(userId uint) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
 		"exp":    time.Now().Add(time.Hour * 24).Unix(),
