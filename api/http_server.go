@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gen/bus"
 	"gen/config"
 	"gen/log"
 	"gen/registry"
@@ -37,10 +36,9 @@ func init() {
 
 type HTTPServer struct {
 	log     *zap.Logger
-	Gin     *gin.Engine
+	gin     *gin.Engine
 	context context.Context
 
-	Bus            bus.Bus                 `inject:""`
 	Cfg            *config.Cfg             `inject:""`
 	ArticleService *article.ArticleService `inject:""`
 	UserService    *user.UserService       `inject:""`
@@ -62,10 +60,10 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 		})
 	}))
 
-	hs.Gin = engine
+	hs.gin = engine
 	hs.context = ctx
 
-	LoadRouter(hs) // 加载路由
+	hs.registerRoutes() // 加载路由
 
 	server := &http.Server{Addr: hs.Cfg.HttpAddr + ":" + hs.Cfg.HttpPort, Handler: engine}
 
@@ -114,5 +112,6 @@ func (*HTTPServer) Failed(ctx *gin.Context, code int, msg string) {
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  msg,
+		"data": nil,
 	})
 }

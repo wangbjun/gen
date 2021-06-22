@@ -5,7 +5,6 @@ import (
 	"fmt"
 	. "gen/models"
 	"gen/registry"
-	. "gen/services/sql_store"
 	"gen/utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -32,7 +31,7 @@ func (r UserService) Init() error {
 	return nil
 }
 
-func (r UserService) Register(param *UserRegisterForm) (string, error) {
+func (r UserService) Register(param *UserRegisterCommand) (string, error) {
 	emailExisted, err := IsUserEmailExisted(param.Email)
 	if err != nil {
 		return "", err
@@ -62,7 +61,7 @@ func (r UserService) Register(param *UserRegisterForm) (string, error) {
 	}
 }
 
-func (r UserService) Login(param *UserLoginForm) (string, error) {
+func (r UserService) Login(param *UserLoginCommand) (string, error) {
 	var user User
 	err := r.SQLStore.DB().Where("email = ?", param.Email).First(&user).Error
 	if err != nil {
@@ -84,7 +83,7 @@ func (r UserService) Login(param *UserLoginForm) (string, error) {
 }
 
 // ParseToken 解析token
-func (r UserService) ParseToken(tokenString string) (uint, error) {
+func (r UserService) ParseToken(tokenString string) (int, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -95,7 +94,7 @@ func (r UserService) ParseToken(tokenString string) (uint, error) {
 		return 0, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return uint(claims["userId"].(float64)), nil
+		return int(claims["userId"].(float64)), nil
 	} else {
 		return 0, err
 	}

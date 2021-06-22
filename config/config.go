@@ -22,6 +22,7 @@ type Cfg struct {
 	Env      string
 	HttpAddr string
 	HttpPort string
+	SqlLog   bool
 }
 
 func NewConfig() *Cfg {
@@ -33,6 +34,7 @@ func NewConfig() *Cfg {
 		Env:      Dev,
 		HttpAddr: "127.0.0.1",
 		HttpPort: "8080",
+		SqlLog:   false,
 	}
 	return Config
 }
@@ -71,5 +73,10 @@ func (cfg *Cfg) readAppCfg() {
 	httpAddr := appConfig.Key("http_addr").String()
 	if httpAddr != "" {
 		cfg.HttpAddr = httpAddr
+	}
+
+	sqlLog := appConfig.Key("sql_log").String()
+	if sqlLog != "" {
+		cfg.SqlLog = sqlLog == "true"
 	}
 }

@@ -22,11 +22,11 @@ func AuthMiddleware(user *user.UserService) gin.HandlerFunc {
 		}
 		userId, err := user.ParseToken(strings.TrimSpace(strings.Trim(token, "Bearer")))
 		if err == nil && userId > 0 {
-			log.Info(fmt.Sprintf("Parse token success, userId: %d", userId))
+			log.Info(fmt.Sprintf("parse token success, userId: %d", userId))
 			ctx.Set("userId", userId)
 			ctx.Next()
 		} else {
-			log.Error(fmt.Sprintf("Parse token failed, error: %s", err))
+			log.Error(fmt.Sprintf("parse token failed, error: %s", err))
 			ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 				"code": 405,
 				"msg":  "用户Token无效",

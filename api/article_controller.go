@@ -2,9 +2,7 @@ package api
 
 import (
 	"gen/api/trans"
-	"gen/log"
 	"gen/models"
-	"gen/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"strconv"
@@ -16,9 +14,9 @@ type articleController struct {
 
 var ArticleController = &articleController{HttpServer}
 
-// CreateArticle 添加文章
-func (r *articleController) CreateArticle(ctx *gin.Context) {
-	var param models.ArticleCreateForm
+// Create 添加文章
+func (r *articleController) Create(ctx *gin.Context) {
+	var param models.CreateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -28,22 +26,22 @@ func (r *articleController) CreateArticle(ctx *gin.Context) {
 		}
 		return
 	}
-	userId := ctx.GetUint("userId")
-	if userId <= 0 {
+	param.UserId = ctx.GetInt("userId")
+	if param.UserId <= 0 {
 		r.Failed(ctx, NotLogin, "用户未登录")
 		return
 	}
-	if id, err := r.HTTPServer.ArticleService.Create(userId, &param); err != nil {
-		r.Failed(ctx, Failed, "添加文章失败")
+	if article, err := r.HTTPServer.ArticleService.Create(&param); err != nil {
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		r.Success(ctx, "添加文章成功", gin.H{"id": id})
+		r.Success(ctx, "添加文章成功", article)
 	}
 	return
 }
 
-// EditArticle 修改文章
-func (r articleController) EditArticle(ctx *gin.Context) {
-	var param models.ArticleUpdateForm
+// Update 修改文章
+func (r articleController) Update(ctx *gin.Context) {
+	var param models.UpdateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -53,90 +51,74 @@ func (r articleController) EditArticle(ctx *gin.Context) {
 		}
 		return
 	}
-	userId := ctx.GetUint("userId")
-	if userId <= 0 {
+	param.Id, err = strconv.Atoi(ctx.Param("id"))
+	if err != nil || param.Id <= 0 {
+		r.Failed(ctx, ParamError, "id不能为空")
+		return
+	}
+	param.UserId = ctx.GetInt("userId")
+	if param.UserId <= 0 {
 		r.Failed(ctx, NotLogin, "用户未登录")
 		return
 	}
-	if id, err := r.HTTPServer.ArticleService.Edit(userId, &param); err != nil {
-		log.Error("edit article failed, error: " + err.Error())
-		r.Failed(ctx, Failed, "修改文章失败")
+	if err := r.HTTPServer.ArticleService.Update(&param); err != nil {
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		r.Success(ctx, "修改文章成功", gin.H{"id": id})
+		r.Success(ctx, "修改文章成功", nil)
 	}
 	return
 }
 
-// GetArticle 文章详情
-func (r articleController) GetArticle(ctx *gin.Context) {
+// GetById 文章详情
+func (r articleController) GetById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	at, err := r.HTTPServer.ArticleService.Detail(uint(id))
+	article, err := r.HTTPServer.ArticleService.GetById(id)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
-		r.Success(ctx, "ok", models.ArticleResult{
-			Id:        at.Id,
-			Title:     at.Title,
-			Content:   at.Content,
-			UserID:    at.UserId,
-			ViewNum:   at.ViewNum,
-			CreatedAt: at.CreatedAt.Format(utils.TimeFormatYmdHis),
-			UpdatedAt: at.CreatedAt.Format(utils.TimeFormatYmdHis),
-		})
+		r.Success(ctx, "ok", article)
 	}
 	return
 }
 
-// ListArticle 文章列表
-func (r articleController) ListArticle(ctx *gin.Context) {
+// GetAll 文章列表
+func (r articleController) GetAll(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.Param("page"))
 	if err != nil || page <= 0 {
 		page = 1
 	}
-	articles, err := r.HTTPServer.ArticleService.List(page)
+	articles, err := r.HTTPServer.ArticleService.GetAll(page)
 	if err != nil {
-		r.Failed(ctx, Failed, "获取文章列表失败")
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		var result = make([]models.ArticleResult, 0)
-		for _, at := range articles {
-			result = append(result, models.ArticleResult{
-				Id:        at.Id,
-				Title:     at.Title,
-				Content:   at.Content,
-				UserID:    at.UserId,
-				ViewNum:   at.ViewNum,
-				CreatedAt: at.CreatedAt.Format(utils.TimeFormatYmdHis),
-				UpdatedAt: at.CreatedAt.Format(utils.TimeFormatYmdHis),
-			})
-		}
-		r.Success(ctx, "ok", result)
+		r.Success(ctx, "ok", articles)
 	}
 	return
 }
 
-// DelArticle 删除文章
-func (r articleController) DelArticle(ctx *gin.Context) {
+// Delete 删除文章
+func (r articleController) Delete(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil || id <= 0 {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	_, err = r.HTTPServer.ArticleService.Del(id, ctx.GetUint("userId"))
+	err = r.HTTPServer.ArticleService.Delete(id, ctx.GetInt("userId"))
 	if err != nil {
-		r.Failed(ctx, Failed, "删除失败")
+		r.Failed(ctx, Failed, err.Error())
 	} else {
-		r.Success(ctx, "删除成功", gin.H{"id": id})
+		r.Success(ctx, "删除成功", nil)
 	}
 	return
 }
 
 // AddComment 新增评论
 func (r articleController) AddComment(ctx *gin.Context) {
-	var param models.ArticleAddCommentForm
+	var param models.CreateArticleCommentCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -151,28 +133,12 @@ func (r articleController) AddComment(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	param.ArticleId = uint(id)
-	err = r.HTTPServer.ArticleService.AddComment(ctx.GetUint("userId"), &param)
+	param.Id = id
+	err = r.HTTPServer.ArticleService.AddComment(&param)
 	if err != nil {
-		r.Failed(ctx, Failed, "评论失败")
+		r.Failed(ctx, Failed, err.Error())
 	} else {
 		r.Success(ctx, "ok", "评论成功")
-	}
-	return
-}
-
-// ListComment 评论列表
-func (r articleController) ListComment(ctx *gin.Context) {
-	articleId, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil || articleId <= 0 {
-		r.Failed(ctx, ParamError, "id不能为空")
-		return
-	}
-	comments, err := r.HTTPServer.ArticleService.ListComment(uint(articleId))
-	if err != nil {
-		r.Success(ctx, "ok", []string{})
-	} else {
-		r.Success(ctx, "ok", comments)
 	}
 	return
 }

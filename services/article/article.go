@@ -2,12 +2,8 @@ package article
 
 import (
 	"errors"
-	"gen/log"
 	. "gen/models"
 	"gen/registry"
-	. "gen/services/sql_store"
-	"github.com/jinzhu/gorm"
-	"time"
 )
 
 type ArticleService struct {
@@ -19,131 +15,78 @@ func init() {
 }
 
 var (
-	NotFound         = errors.New("文章不存在")
-	PermissionDenied = errors.New("没有权限")
+	PermissionDenied = errors.New("没有操作权限")
 )
 
 func (r ArticleService) Init() error {
 	return nil
 }
 
-func (r ArticleService) Create(userId uint, form *ArticleCreateForm) (uint, error) {
-	article := Article{
-		Title:   form.Title,
-		Content: form.Content,
-		UserId:  userId,
-	}
-	article.CreatedAt = time.Now()
-	article.UpdatedAt = time.Now()
-
-	err := r.SQLStore.DB().Create(&article).Error
-	if err != nil {
-		return 0, err
-	}
-	return article.Id, nil
-}
-
-func (r ArticleService) Edit(userId uint, param *ArticleUpdateForm) (uint, error) {
-	var article Article
-	err := r.SQLStore.DB().Where("id = ?", param.Id).Find(&article).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return 0, NotFound
-	}
-	if err != nil {
-		return 0, err
-	}
-	if article.UserId != userId {
-		return 0, PermissionDenied
-	}
-	article.Title = param.Title
-	article.Content = param.Content
-	article.UpdatedAt = time.Now()
-	err = r.SQLStore.DB().Save(&article).Error
-	if err != nil {
-		return 0, err
-	}
-	return article.Id, nil
-}
-
-func (r ArticleService) Detail(id uint) (*Article, error) {
-	var article Article
-	db := r.SQLStore.DB().Where("id = ?", id).Find(&article)
-	if gorm.IsRecordNotFoundError(db.Error) {
-		return nil, NotFound
-	}
-	if db.Error != nil {
-		return nil, db.Error
-	}
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Logger.Sugar().Errorf("update view_num failed, error: %s", err)
-			}
-		}()
-		db.UpdateColumn("view_num", gorm.Expr("view_num + 1"))
-	}()
-	return &article, nil
-}
-
-func (r ArticleService) List(page int) ([]*Article, error) {
-	var article []*Article
-	offset := (page - 1) * 10
-	err := r.SQLStore.DB().Limit(10).Offset(offset).
-		Order("id desc").Find(&article).Error
+func (r ArticleService) Create(param *CreateArticleCommand) (*Article, error) {
+	article, err := CreateArticle(param)
 	if err != nil {
 		return nil, err
 	}
 	return article, nil
 }
 
-func (r ArticleService) Del(id int, userId uint) (bool, error) {
-	var article Article
-	err := r.SQLStore.DB().Where("id = ?", id).First(&article).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return false, NotFound
-	}
-	if err != nil {
-		return false, err
-	}
-	if article.UserId != userId {
-		return false, PermissionDenied
-	}
-	err = r.SQLStore.DB().Delete(&article).Error
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func (r ArticleService) AddComment(userId uint, param *ArticleAddCommentForm) error {
-	var article Article
-	err := r.SQLStore.DB().Where("id = ?", param.ArticleId).First(&article).Error
-	if gorm.IsRecordNotFoundError(err) {
-		return NotFound
-	}
+func (r ArticleService) Update(param *UpdateArticleCommand) error {
+	article, err := GetArticleById(param.Id)
 	if err != nil {
 		return err
 	}
-	comment := Comment{}
-	comment.UserId = userId
-	comment.ArticleId = param.ArticleId
-	comment.Content = param.Content
-	comment.CreatedAt = time.Now()
-	comment.UpdatedAt = time.Now()
-	err = r.SQLStore.DB().Create(&comment).Error
-	if err != nil {
-		return err
-	} else {
-		return nil
+	// 只有更新自己的文章
+	if article.UserId != param.UserId {
+		return PermissionDenied
 	}
+	if err := UpdateArticle(param); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r ArticleService) ListComment(ArticleId uint) ([]*Comment, error) {
-	var comments []*Comment
-	err := r.SQLStore.DB().Where("article_id = ?", ArticleId).Find(&comments).Error
+func (r ArticleService) GetById(id int) (*Article, error) {
+	article, err := GetArticleById(id)
 	if err != nil {
 		return nil, err
-	} else {
-		return comments, nil
 	}
+	err = IncArticleViewNum(id)
+	if err != nil {
+		return nil, err
+	}
+	return article, nil
+}
+
+func (r ArticleService) GetAll(page int) ([]*Article, error) {
+	const pageSize = 15
+	articles, err := GetArticles(page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return articles, nil
+}
+
+func (r ArticleService) Delete(id, userId int) error {
+	article, err := GetArticleById(id)
+	if err != nil {
+		return err
+	}
+	if article.UserId != userId {
+		return PermissionDenied
+	}
+	if err = DeleteArticle(id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r ArticleService) AddComment(param *CreateArticleCommentCommand) error {
+	_, err := GetArticleById(param.Id)
+	if err != nil {
+		return err
+	}
+	if err := CreateArticleComment(param); err != nil {
+		return err
+	}
+	return nil
 }

@@ -19,7 +19,7 @@ var UserController = &userController{
 
 // Register 用户注册
 func (r userController) Register(ctx *gin.Context) {
-	var form models.UserRegisterForm
+	var form models.UserRegisterCommand
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
@@ -40,7 +40,7 @@ func (r userController) Register(ctx *gin.Context) {
 
 // Login 用户登录
 func (r userController) Login(ctx *gin.Context) {
-	var form models.UserLoginForm
+	var form models.UserLoginCommand
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {

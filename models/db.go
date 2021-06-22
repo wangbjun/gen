@@ -1,15 +1,16 @@
-package sqlstore
+package models
 
 import (
 	"fmt"
-	"gen/bus"
 	"gen/config"
 	"gen/log"
 	"gen/registry"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"strings"
+	"time"
 )
 
 const ServiceName = "SqlStore"
@@ -26,8 +27,8 @@ func init() {
 }
 
 type SQLStore struct {
-	Cfg   *config.Cfg `inject:""`
-	Bus   bus.Bus     `inject:""`
+	Cfg *config.Cfg `inject:""`
+
 	conns map[string]*gorm.DB
 	log   *zap.Logger
 }
@@ -92,15 +93,27 @@ func (ss *SQLStore) initChildConns() error {
 }
 
 func (ss *SQLStore) openConn(dialect, dsn string, idle, open int) (*gorm.DB, error) {
-	conn, err := gorm.Open(dialect, dsn)
+	newLogger := logger.New(Writer{}, logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Info,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false})
+	openDB, err := gorm.Open(mysql.New(mysql.Config{DSN: dsn}), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		return nil, err
 	}
-	conn.DB().SetMaxIdleConns(idle)
-	conn.DB().SetMaxOpenConns(open)
-	if ss.Cfg.Env == "dev" {
-		conn.LogMode(true)
-		conn.SetLogger(new(log.SqlLog))
+	db, err := openDB.DB()
+	if err != nil {
+		return nil, err
 	}
-	return conn, nil
+	db.SetMaxIdleConns(idle)
+	db.SetMaxOpenConns(open)
+	return openDB, nil
+}
+
+// Writer 记录SQL日志
+type Writer struct{}
+
+func (w Writer) Printf(format string, args ...interface{}) {
+	log.Info(fmt.Sprintf(format, args...))
 }

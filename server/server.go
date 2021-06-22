@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"gen/api"
-	"gen/bus"
 	"gen/config"
 	"gen/log"
 	"gen/registry"
@@ -169,7 +168,6 @@ func (s *Server) Shutdown(ctx context.Context, reason string) error {
 func (s *Server) buildServiceGraph(services []*registry.Descriptor) error {
 	// Specify service dependencies.
 	objs := []interface{}{
-		bus.GetBus(),
 		s.cfg,
 		s,
 	}
