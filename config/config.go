@@ -18,6 +18,7 @@ var (
 )
 
 type Cfg struct {
+	File     string
 	Raw      *ini.File
 	Env      string
 	HttpAddr string
@@ -37,16 +38,15 @@ func NewConfig() *Cfg {
 	return Config
 }
 
-func (cfg *Cfg) Load(cfgFile string) error {
-	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
-		return fmt.Errorf("cfg file [%s] not existed", cfgFile)
+func (cfg *Cfg) Load() error {
+	if _, err := os.Stat(cfg.File); os.IsNotExist(err) {
+		return fmt.Errorf("cfg file [%s] not existed", cfg.File)
 	}
-	conf, err := ini.Load(cfgFile)
+	conf, err := ini.Load(cfg.File)
 	if err != nil {
-		return fmt.Errorf("load file [%s] failed", cfgFile)
+		return fmt.Errorf("load file [%s] failed", cfg.File)
 	}
 	cfg.Raw = conf
-
 	cfg.readAppCfg()
 
 	log.Configure(cfg.Raw) // configure log

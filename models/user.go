@@ -1,7 +1,8 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"errors"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func IsUserEmailExisted(email string) (bool, error) {
 	var user User
 	err := db.Where("email = ?", email).First(&user).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		} else {
 			return false, err

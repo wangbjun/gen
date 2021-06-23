@@ -7,7 +7,7 @@ import (
 	"gen/registry"
 	"gen/utils"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -20,7 +20,7 @@ var (
 )
 
 type UserService struct {
-	SQLStore *SQLStore `inject:""`
+	SQLStore *SQLService `inject:""`
 }
 
 func init() {
@@ -48,7 +48,7 @@ func (r UserService) Register(param *UserRegisterCommand) (string, error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	err = r.SQLStore.DB().Save(&user).Error
+	err = DB().Save(&user).Error
 	if err != nil {
 		return "", err
 	} else {
@@ -63,9 +63,9 @@ func (r UserService) Register(param *UserRegisterCommand) (string, error) {
 
 func (r UserService) Login(param *UserLoginCommand) (string, error) {
 	var user User
-	err := r.SQLStore.DB().Where("email = ?", param.Email).First(&user).Error
+	err := DB().Where("email = ?", param.Email).First(&user).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", NotExisted
 		}
 		return "", err

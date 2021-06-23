@@ -1,13 +1,19 @@
 package article
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	. "gen/models"
 	"gen/registry"
+	"gen/services/cache"
+	"time"
 )
 
 type ArticleService struct {
-	SQLStore *SQLStore `inject:""`
+	SQLStore *SQLService         `inject:""`
+	Cache    *cache.CacheService `inject:""`
 }
 
 func init() {
@@ -46,11 +52,29 @@ func (r ArticleService) Update(param *UpdateArticleCommand) error {
 }
 
 func (r ArticleService) GetById(id int) (*Article, error) {
+	// 读取redis缓存
+	c, err := r.Cache.Redis.Get(context.TODO(), fmt.Sprintf("article_id_%d", id)).Result()
+	if err == nil {
+		var a Article
+		err := json.Unmarshal([]byte(c), &a)
+		if err == nil {
+			err = AddViewNum(id)
+			if err != nil {
+				return nil, err
+			}
+			return &a, nil
+		}
+	}
 	article, err := GetArticleById(id)
 	if err != nil {
 		return nil, err
 	}
-	err = IncArticleViewNum(id)
+	// 缓存数据
+	data, err := json.Marshal(article)
+	if err == nil {
+		r.Cache.Redis.Set(context.TODO(), fmt.Sprintf("article_id_%d", id), data, time.Second*30)
+	}
+	err = AddViewNum(id)
 	if err != nil {
 		return nil, err
 	}

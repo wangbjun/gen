@@ -13,27 +13,36 @@ import (
 	"time"
 )
 
-const ServiceName = "SqlStore"
-const InitPriority = registry.High
-
-var db *gorm.DB
+var (
+	db       *gorm.DB
+	sqlStore *SQLService
+)
 
 func init() {
 	registry.Register(&registry.Descriptor{
-		Name:         ServiceName,
-		Instance:     &SQLStore{},
-		InitPriority: InitPriority,
+		Name:         "SqlService",
+		Instance:     &SQLService{},
+		InitPriority: registry.High,
 	})
 }
 
-type SQLStore struct {
+type SQLService struct {
 	Cfg *config.Cfg `inject:""`
 
 	conns map[string]*gorm.DB
 	log   *zap.Logger
 }
 
-func (ss *SQLStore) Init() error {
+func DB(dbName ...string) *gorm.DB {
+	if len(dbName) > 0 {
+		if conn, ok := sqlStore.conns[dbName[0]]; ok {
+			return conn
+		}
+	}
+	return db
+}
+
+func (ss *SQLService) Init() error {
 	ss.log = log.Logger
 	ss.conns = make(map[string]*gorm.DB)
 	if err := ss.initDefaultConn(); err != nil {
@@ -45,19 +54,11 @@ func (ss *SQLStore) Init() error {
 		ss.log.Error(fmt.Sprintf("init child db conn failed: %s", err.Error()))
 		return err
 	}
+	sqlStore = ss
 	return nil
 }
 
-func (ss *SQLStore) DB(dbName ...string) *gorm.DB {
-	if len(dbName) > 0 {
-		if conn, ok := ss.conns[dbName[0]]; ok {
-			return conn
-		}
-	}
-	return db
-}
-
-func (ss *SQLStore) initDefaultConn() error {
+func (ss *SQLService) initDefaultConn() error {
 	section := ss.Cfg.Raw.Section("db")
 	var (
 		dialect         = section.Key("dialect").String()
@@ -74,7 +75,7 @@ func (ss *SQLStore) initDefaultConn() error {
 	return nil
 }
 
-func (ss *SQLStore) initChildConns() error {
+func (ss *SQLService) initChildConns() error {
 	sections := ss.Cfg.Raw.Section("db").ChildSections()
 	for _, section := range sections {
 		var (
@@ -92,7 +93,7 @@ func (ss *SQLStore) initChildConns() error {
 	return nil
 }
 
-func (ss *SQLStore) openConn(dialect, dsn string, idle, open int) (*gorm.DB, error) {
+func (ss *SQLService) openConn(dialect, dsn string, idle, open int) (*gorm.DB, error) {
 	newLogger := logger.New(Writer{}, logger.Config{
 		SlowThreshold:             200 * time.Millisecond,
 		LogLevel:                  logger.Info,

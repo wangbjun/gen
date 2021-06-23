@@ -13,12 +13,12 @@ require (
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.6.1
+	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.1.1
-	github.com/jinzhu/gorm v1.9.16
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/thinkoner/openssl v0.0.0-20191016104818-1df12dff7f46
 	go.uber.org/zap v1.13.0
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	gopkg.in/ini.v1 v1.51.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gorm.io/driver/mysql v1.1.1

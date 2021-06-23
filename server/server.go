@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gen/api"
+	_ "gen/api"
 	"gen/config"
 	"gen/log"
 	"gen/registry"
@@ -31,10 +31,6 @@ type Server struct {
 	isInitialized    bool
 	mtx              sync.Mutex
 	serviceRegistry  serviceRegistry
-
-	configFile string
-
-	HTTPServer *api.HTTPServer `inject:""`
 }
 
 type serviceRegistry interface {
@@ -57,14 +53,15 @@ func New(cfg Config) (*Server, error) {
 	rootCtx, shutdownFn := context.WithCancel(context.Background())
 	childRoutines, childCtx := errgroup.WithContext(rootCtx)
 
+	newConfig := config.NewConfig()
+	newConfig.File = cfg.ConfigFile
 	s := &Server{
 		context:          childCtx,
 		shutdownFn:       shutdownFn,
 		shutdownFinished: make(chan struct{}),
 		childRoutines:    childRoutines,
 		log:              log.New("server"),
-		cfg:              config.NewConfig(),
-		configFile:       cfg.ConfigFile,
+		cfg:              newConfig,
 		serviceRegistry:  &globalServiceRegistry{},
 	}
 	if err := s.init(); err != nil {
@@ -83,7 +80,7 @@ func (s *Server) init() error {
 	}
 	s.isInitialized = true
 
-	if err := s.cfg.Load(s.configFile); err != nil {
+	if err := s.cfg.Load(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to load Cfg. error: %s\n", err.Error())
 		os.Exit(1)
 	}

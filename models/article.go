@@ -80,7 +80,7 @@ func CreateArticleComment(param *CreateArticleCommentCommand) error {
 	}
 }
 
-func IncArticleViewNum(id int) error {
+func AddViewNum(id int) error {
 	err := db.Model(&Article{}).Where("id = ?", id).
 		UpdateColumn("view_num", gorm.Expr("view_num + 1")).Error
 	if err != nil {

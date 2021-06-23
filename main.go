@@ -20,7 +20,7 @@ func main() {
 
 	defer func() {
 		if err := log.Logger.Sync(); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to close log: %s\n", err)
+			fmt.Printf("Failed to close log: %s\n", err)
 		}
 	}()
 
@@ -29,7 +29,7 @@ func main() {
 	})
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start server: %s\n", err)
+		fmt.Printf("Failed to start server: %s\n", err)
 		os.Exit(-1)
 	}
 
@@ -37,7 +37,7 @@ func main() {
 	go listenToSystemSignals(ctx, s)
 
 	if err := s.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to run server: %s\n", err)
+		fmt.Printf("Failed to run server: %s\n", err)
 		os.Exit(-1)
 	}
 }
@@ -50,7 +50,7 @@ func listenToSystemSignals(ctx context.Context, s *server.Server) {
 		case sig := <-signalChan:
 			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 			if err := s.Shutdown(ctx, fmt.Sprintf("System signal: %s", sig)); err != nil {
-				fmt.Fprintf(os.Stderr, "Timed out waiting for server to shutdown\n")
+				fmt.Printf("Timed out waiting for server to shutdown\n")
 			}
 			cancel()
 			return
