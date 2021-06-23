@@ -9,7 +9,7 @@
 * [github.com/facebookgo/inject](https://github.com/facebookgo/inject)
 * [github.com/go-redis/redis](https://github.com/go-redis/redis)
 
-目录结构清晰明了，项目包含了一个用户注册、登录、文章增删改查等功能的 Restful API 应用，仅供参考！
+项目目录结构清晰明了，简单易用，快速上手，包含了一个用户注册、登录、文章增删改查等功能的 Restful API 应用，仅供参考！
 
 主要包含以下API：
 
@@ -89,7 +89,7 @@ HTTPServer的代码在```api/http_server.go```文件里面，其主要作用就�
 
 个人理解，控制器层主要做一些接口参数校验等工作，模型层主要是数据操作，Service层才是主要的业务逻辑。
 
-数据库相关配置在```models/db.go```里面，也是一个服务，主要作用是根据配置，初始化数据库连接，支持多数据库配置。
+数据库相关配置在```models/db.go```里面，也是一个服务，主要作用是根据配置，初始化数据库连接，支持多数据库配置、支持Sql日志记录。
 ```go
 type SQLService struct {
     Cfg *config.Cfg `inject:""`
