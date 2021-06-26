@@ -25,11 +25,12 @@ type Cfg struct {
 	HttpPort string
 }
 
-func NewConfig() *Cfg {
+func NewConfig(file string) *Cfg {
 	if Config != nil {
 		return Config
 	}
 	Config = &Cfg{
+		File:     file,
 		Raw:      ini.Empty(),
 		Env:      Dev,
 		HttpAddr: "127.0.0.1",

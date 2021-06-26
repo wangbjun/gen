@@ -14,19 +14,16 @@ import (
 
 func main() {
 	var (
-		configFile = flag.String("config", "app.ini", "path to config file")
+		cfgFile = flag.String("f", "app.ini", "path to config file")
 	)
 	flag.Parse()
-
 	defer func() {
 		if err := log.Logger.Sync(); err != nil {
 			fmt.Printf("Failed to close log: %s\n", err)
 		}
 	}()
 
-	s, err := server.New(server.Config{
-		ConfigFile: *configFile,
-	})
+	s, err := server.New(*cfgFile)
 
 	if err != nil {
 		fmt.Printf("Failed to start server: %s\n", err)

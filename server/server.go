@@ -14,11 +14,6 @@ import (
 	"sync"
 )
 
-// Config contains parameters for the New function.
-type Config struct {
-	ConfigFile string
-}
-
 // Server is responsible for managing the lifecycle of services.
 type Server struct {
 	context          context.Context
@@ -49,19 +44,17 @@ func (r *globalServiceRegistry) GetServices() []*registry.Descriptor {
 }
 
 // New returns a new instance of Server.
-func New(cfg Config) (*Server, error) {
+func New(cfgFile string) (*Server, error) {
 	rootCtx, shutdownFn := context.WithCancel(context.Background())
 	childRoutines, childCtx := errgroup.WithContext(rootCtx)
 
-	newConfig := config.NewConfig()
-	newConfig.File = cfg.ConfigFile
 	s := &Server{
 		context:          childCtx,
 		shutdownFn:       shutdownFn,
 		shutdownFinished: make(chan struct{}),
 		childRoutines:    childRoutines,
 		log:              log.New("server"),
-		cfg:              newConfig,
+		cfg:              config.NewConfig(cfgFile),
 		serviceRegistry:  &globalServiceRegistry{},
 	}
 	if err := s.init(); err != nil {
@@ -81,7 +74,7 @@ func (s *Server) init() error {
 	s.isInitialized = true
 
 	if err := s.cfg.Load(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to load Cfg. error: %s\n", err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to load cfg: %s\n", err.Error())
 		os.Exit(1)
 	}
 
