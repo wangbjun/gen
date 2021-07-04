@@ -1,13 +1,11 @@
 package log
 
 import (
-	"gen/utils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/ini.v1"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
-	"time"
 )
 
 var Logger *zap.Logger
@@ -44,12 +42,12 @@ func Configure(cfg *ini.File) {
 	encoderConfig := zapcore.EncoderConfig{
 		LevelKey:       "level",
 		NameKey:        "name",
-		CallerKey:      "caller",
+		TimeKey:        "time",
 		MessageKey:     "msg",
 		StacktraceKey:  "stack",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05"),
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
@@ -93,9 +91,7 @@ func Panic(msg string, fields ...zapcore.Field) {
 }
 
 func getFields(fields ...zapcore.Field) []zapcore.Field {
-	f := []zapcore.Field{
-		zap.String("time", time.Now().Format(utils.TimeFormatYmdHis)),
-	}
+	var f []zapcore.Field
 	if len(fields) > 0 {
 		f = append(f, fields...)
 	}

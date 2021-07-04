@@ -78,10 +78,10 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 			hs.log.Error(fmt.Sprintf("Failed to shutdown server: %s", err))
 		}
 	}()
-	hs.log.Debug("server was started successfully")
+	hs.log.Debug("Server was started successfully")
 	err := server.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		hs.log.Debug("server was shutdown gracefully")
+		hs.log.Debug("Server was shutdown gracefully")
 		return nil
 	}
 	wg.Wait()

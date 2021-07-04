@@ -133,16 +133,13 @@ type UpdateArticleCommand struct {
 ## 使用
 建议直接clone本项目，然后删除多余的控制器、模型等文件，根据自己需求调整即可。
 ```go
-debug   registry/di.go:42       Service [SqlService] init success       {"time": "2021-06-23 23:59:15"}
-debug   registry/di.go:42       Service [HTTPServer] init success       {"time": "2021-06-23 23:59:15"}
-debug   registry/di.go:42       Service [UserService] init success      {"time": "2021-06-23 23:59:15"}
-debug   registry/di.go:42       Service [CacheService] init success     {"time": "2021-06-23 23:59:15"}
-debug   registry/di.go:42       Service [ArticleService] init success   {"time": "2021-06-23 23:59:15"}
-debug   gen/main.go:39  Waiting on services...  {"time": "2021-06-23 23:59:15", "module": "server"}
-debug   server/server.go:126    server was started successfully {"time": "2021-06-23 23:59:15", "module": "http_server"}
-info    sync/once.go:66 Shutdown started        {"time": "2021-06-23 23:59:15", "module": "server"}
-debug   server/server.go:126    server was shutdown gracefully  {"time": "2021-06-23 23:59:15", "module": "http_server"}
-debug   errgroup/errgroup.go:57 Stopped HTTPServer      {"time": "2021-06-23 23:59:15", "module": "server"}
+2021-07-04 12:49:19     debug   Service [SqlService] init success
+2021-07-04 12:49:19     debug   Service [HTTPServer] init success
+2021-07-04 12:49:19     debug   Service [UserService] init success
+2021-07-04 12:49:19     debug   Service [CacheService] init success
+2021-07-04 12:49:19     debug   Service [ArticleService] init success
+2021-07-04 12:49:19     debug   Waiting on services...  {"module": "server"}
+2021-07-04 12:49:19     debug   Server was started successfully {"module": "http_server"}
 ``` 
 
 最后的最后，本项目参考借鉴了著名Go开源项目 [Grafana](https://github.com/grafana/grafana) 的设计和架构，这个项目的后端是全部采用Go开发，东西也很多，代码很不错。
