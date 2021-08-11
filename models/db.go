@@ -5,7 +5,6 @@ import (
 	"gen/config"
 	"gen/log"
 	"gen/registry"
-	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -30,7 +29,6 @@ type SQLService struct {
 	Cfg *config.Cfg `inject:""`
 
 	conns map[string]*gorm.DB
-	log   *zap.Logger
 }
 
 func DB(dbName ...string) *gorm.DB {
@@ -43,15 +41,14 @@ func DB(dbName ...string) *gorm.DB {
 }
 
 func (ss *SQLService) Init() error {
-	ss.log = log.Logger
 	ss.conns = make(map[string]*gorm.DB)
 	if err := ss.initDefaultConn(); err != nil {
-		ss.log.Error(fmt.Sprintf("init default db conn failed: %s", err.Error()))
+		log.Error(fmt.Sprintf("init default db conn failed: %s", err.Error()))
 		return err
 	}
 
 	if err := ss.initChildConns(); err != nil {
-		ss.log.Error(fmt.Sprintf("init child db conn failed: %s", err.Error()))
+		log.Error(fmt.Sprintf("init child db conn failed: %s", err.Error()))
 		return err
 	}
 	sqlStore = ss
@@ -116,5 +113,5 @@ func (ss *SQLService) openConn(dialect, dsn string, idle, open int) (*gorm.DB, e
 type Writer struct{}
 
 func (w Writer) Printf(format string, args ...interface{}) {
-	log.Info(fmt.Sprintf(format, args...))
+	log.Debug(fmt.Sprintf(format, args...))
 }

@@ -119,7 +119,7 @@ type CanBeDisabled interface {
 }
 
 // BackgroundService should be implemented for services that have
-// long running tasks in the background.
+// long-running tasks in the background.
 type BackgroundService interface {
 	// Run starts the background process of the service after `Init` have been called
 	// on all services. The `context.Context` passed into the function should be used

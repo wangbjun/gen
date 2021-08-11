@@ -16,7 +16,7 @@ require (
 	github.com/go-playground/validator/v10 v10.6.1
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.1.1
-	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/thinkoner/openssl v0.0.0-20191016104818-1df12dff7f46
 	go.uber.org/zap v1.17.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9

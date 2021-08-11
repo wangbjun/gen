@@ -12,8 +12,9 @@ import (
 )
 
 type ArticleService struct {
-	SQLStore *SQLService         `inject:""`
-	Cache    *cache.CacheService `inject:""`
+	SQLStore *SQLService `inject:""`
+
+	Cache *cache.CacheService `inject:""`
 }
 
 func init() {
@@ -21,7 +22,7 @@ func init() {
 }
 
 var (
-	PermissionDenied = errors.New("没有操作权限")
+	ErrorPermissionDenied = errors.New("没有操作权限")
 )
 
 func (r ArticleService) Init() error {
@@ -43,7 +44,7 @@ func (r ArticleService) Update(param *UpdateArticleCommand) error {
 	}
 	// 只有更新自己的文章
 	if article.UserId != param.UserId {
-		return PermissionDenied
+		return ErrorPermissionDenied
 	}
 	if err := UpdateArticle(param); err != nil {
 		return err
@@ -96,7 +97,7 @@ func (r ArticleService) Delete(id, userId int) error {
 		return err
 	}
 	if article.UserId != userId {
-		return PermissionDenied
+		return ErrorPermissionDenied
 	}
 	if err = DeleteArticle(id); err != nil {
 		return err

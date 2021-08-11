@@ -1,4 +1,4 @@
-package api
+package controllers
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
+	"net/http/httptest"
 	"sync"
 )
 
@@ -24,20 +25,18 @@ const (
 	NotLogin     = 405 //未登录
 )
 
-var HttpServer = &HTTPServer{}
-
 func init() {
 	registry.Register(&registry.Descriptor{
 		Name:         "HTTPServer",
-		Instance:     HttpServer,
+		Instance:     &HTTPServer{},
 		InitPriority: registry.High,
 	})
 }
 
 type HTTPServer struct {
 	log     *zap.Logger
-	gin     *gin.Engine
 	context context.Context
+	engine  *gin.Engine
 
 	Cfg            *config.Cfg             `inject:""`
 	ArticleService *article.ArticleService `inject:""`
@@ -45,12 +44,7 @@ type HTTPServer struct {
 }
 
 func (hs *HTTPServer) Init() error {
-	return nil
-}
-
-func (hs *HTTPServer) Run(ctx context.Context) error {
 	hs.log = log.New("http_server")
-
 	gin.SetMode(hs.getMode())
 	engine := gin.New()
 	engine.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
@@ -59,13 +53,15 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 			"msg":  "服务器内部错误，请稍后再试！",
 		})
 	}))
+	hs.engine = engine
+	hs.registerRoutes() // 加载路由
+	return nil
+}
 
-	hs.gin = engine
+func (hs *HTTPServer) Run(ctx context.Context) error {
 	hs.context = ctx
 
-	hs.registerRoutes() // 加载路由
-
-	server := &http.Server{Addr: hs.Cfg.HttpAddr + ":" + hs.Cfg.HttpPort, Handler: engine}
+	server := &http.Server{Addr: hs.Cfg.HttpAddr + ":" + hs.Cfg.HttpPort, Handler: hs.engine}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -84,8 +80,15 @@ func (hs *HTTPServer) Run(ctx context.Context) error {
 		hs.log.Debug("Server was shutdown gracefully")
 		return nil
 	}
+	if err != nil {
+		return err
+	}
 	wg.Wait()
 	return nil
+}
+
+func (hs *HTTPServer) ServeHTTP(recorder *httptest.ResponseRecorder, r *http.Request) {
+	hs.engine.ServeHTTP(recorder, r)
 }
 
 func (hs *HTTPServer) getMode() string {
@@ -96,11 +99,11 @@ func (hs *HTTPServer) getMode() string {
 	return gin.ReleaseMode
 }
 
-func (*HTTPServer) Index(ctx *gin.Context) {
+func (HTTPServer) Index(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "Gen Web")
 }
 
-func (*HTTPServer) Success(ctx *gin.Context, msg string, data interface{}) {
+func (HTTPServer) Success(ctx *gin.Context, msg string, data interface{}) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": Success,
 		"msg":  msg,
@@ -108,7 +111,7 @@ func (*HTTPServer) Success(ctx *gin.Context, msg string, data interface{}) {
 	})
 }
 
-func (*HTTPServer) Failed(ctx *gin.Context, code int, msg string) {
+func (HTTPServer) Failed(ctx *gin.Context, code int, msg string) {
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  msg,

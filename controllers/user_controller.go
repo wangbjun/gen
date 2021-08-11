@@ -1,20 +1,16 @@
-package api
+package controllers
 
 import (
 	"fmt"
-	"gen/api/trans"
 	"gen/log"
 	"gen/models"
+	"gen/utils/trans"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
 type userController struct {
 	*HTTPServer
-}
-
-var UserController = &userController{
-	HttpServer,
 }
 
 // Register 用户注册

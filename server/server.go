@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	_ "gen/api"
 	"gen/config"
+	"gen/controllers"
 	"gen/log"
 	"gen/registry"
 	"go.uber.org/zap"
@@ -26,6 +26,8 @@ type Server struct {
 	isInitialized    bool
 	mtx              sync.Mutex
 	serviceRegistry  serviceRegistry
+
+	HTTPServer *controllers.HTTPServer `inject:""`
 }
 
 type serviceRegistry interface {
@@ -144,9 +146,9 @@ func (s *Server) Shutdown(ctx context.Context, reason string) error {
 		// Wait for server to shut down
 		select {
 		case <-s.shutdownFinished:
-			s.log.Debug("Finished waiting for server to shut down")
+			s.log.Debug("Finished waiting for server to shutdown")
 		case <-ctx.Done():
-			s.log.Warn("Timed out while waiting for server to shut down")
+			s.log.Warn("Timed out while waiting for server to shutdown")
 			err = fmt.Errorf("timeout waiting for shutdown")
 		}
 	})

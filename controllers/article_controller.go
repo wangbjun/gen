@@ -1,8 +1,8 @@
-package api
+package controllers
 
 import (
-	"gen/api/trans"
 	"gen/models"
+	"gen/utils/trans"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"strconv"
@@ -12,10 +12,8 @@ type articleController struct {
 	*HTTPServer
 }
 
-var ArticleController = &articleController{HttpServer}
-
 // Create 添加文章
-func (r *articleController) Create(ctx *gin.Context) {
+func (r articleController) Create(ctx *gin.Context) {
 	var param models.CreateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {

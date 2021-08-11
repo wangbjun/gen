@@ -18,8 +18,8 @@ func init() {
 	Logger = zap.NewExample()
 }
 
-// Configure 配置日志模块
-func Configure(cfg *ini.File) {
+// Init 配置日志模块
+func Init(cfg *ini.File) {
 	appConfig := cfg.Section("app")
 	logMode := appConfig.Key("log_mode").String()
 	if logMode == "" {

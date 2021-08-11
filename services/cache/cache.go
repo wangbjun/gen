@@ -2,15 +2,13 @@ package cache
 
 import (
 	"gen/config"
-	. "gen/models"
 	"gen/registry"
 	"github.com/go-redis/redis/v8"
 )
 
 type CacheService struct {
-	Cfg      *config.Cfg `inject:""`
-	SQLStore *SQLService `inject:""`
-	Redis    *redis.Client
+	Cfg   *config.Cfg `inject:""`
+	Redis *redis.Client
 }
 
 func init() {

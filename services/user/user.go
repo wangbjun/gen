@@ -12,16 +12,14 @@ import (
 )
 
 var (
-	Secret        = []byte("@fc6951544^f55c644!@0d")
-	Existed       = errors.New("邮箱已存在")
-	NotExisted    = errors.New("邮箱不存在")
-	PasswordWrong = errors.New("邮箱或密码错误")
-	LoginFailed   = errors.New("登录失败")
+	Secret             = []byte("@fc6951544^f55c644!@0d")
+	ErrorExisted       = errors.New("邮箱已存在")
+	ErrorNotExisted    = errors.New("邮箱不存在")
+	ErrorPasswordWrong = errors.New("邮箱或密码错误")
+	ErrorLoginFailed   = errors.New("登录失败")
 )
 
-type UserService struct {
-	SQLStore *SQLService `inject:""`
-}
+type UserService struct{}
 
 func init() {
 	registry.RegisterService(&UserService{})
@@ -37,7 +35,7 @@ func (r UserService) Register(param *UserRegisterCommand) (string, error) {
 		return "", err
 	}
 	if emailExisted {
-		return "", Existed
+		return "", ErrorExisted
 	}
 	var user = User{}
 	salt := utils.GetUuidV4()[24:]
@@ -66,16 +64,16 @@ func (r UserService) Login(param *UserLoginCommand) (string, error) {
 	err := DB().Where("email = ?", param.Email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", NotExisted
+			return "", ErrorNotExisted
 		}
 		return "", err
 	}
 	if user.Password != utils.Sha1([]byte(param.Password+user.Salt)) {
-		return "", PasswordWrong
+		return "", ErrorPasswordWrong
 	} else {
 		token, err := r.createToken(user.Id)
 		if err != nil {
-			return "", LoginFailed
+			return "", ErrorLoginFailed
 		} else {
 			return token, nil
 		}

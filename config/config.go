@@ -50,7 +50,7 @@ func (cfg *Cfg) Load() error {
 	cfg.Raw = conf
 	cfg.readAppCfg()
 
-	log.Configure(cfg.Raw) // configure log
+	log.Init(cfg.Raw) // configure log
 
 	return nil
 }
