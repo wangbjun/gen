@@ -3,11 +3,9 @@ package utils
 import (
 	"crypto/md5"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/thinkoner/openssl"
 	"hash"
 	"io"
 )
@@ -37,22 +35,6 @@ func FileHash(reader io.Reader, tp string) string {
 		return ""
 	}
 	return fmt.Sprintf("%x", h.Sum(result))
-}
-
-func Encrypt(src, key, iv []byte) (string, error) {
-	var dst, err = openssl.AesCBCEncrypt(src, key, iv, openssl.PKCS7_PADDING)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(dst), nil
-}
-
-func Decrypt(dst, key, iv []byte) (string, error) {
-	result, err := openssl.AesCBCDecrypt(dst, key, iv, openssl.PKCS7_PADDING)
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
 }
 
 // GetUuid 生成uuid

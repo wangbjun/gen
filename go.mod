@@ -3,7 +3,7 @@ module gen
 go 1.13
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/inject v0.0.0-20180706035515-f23751cae28b
@@ -17,7 +17,6 @@ require (
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.1.1
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/thinkoner/openssl v0.0.0-20191016104818-1df12dff7f46
 	go.uber.org/zap v1.17.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	gopkg.in/ini.v1 v1.51.0
