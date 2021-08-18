@@ -7,8 +7,7 @@ import (
 	"gen/config"
 	"gen/log"
 	"gen/registry"
-	"gen/services/article"
-	"gen/services/user"
+	"gen/services"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
@@ -38,9 +37,9 @@ type HTTPServer struct {
 	context context.Context
 	engine  *gin.Engine
 
-	Cfg            *config.Cfg             `inject:""`
-	ArticleService *article.ArticleService `inject:""`
-	UserService    *user.UserService       `inject:""`
+	Cfg            *config.Cfg              `inject:""`
+	ArticleService *services.ArticleService `inject:""`
+	UserService    *services.UserService    `inject:""`
 }
 
 func (hs *HTTPServer) Init() error {

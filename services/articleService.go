@@ -1,4 +1,4 @@
-package article
+package services
 
 import (
 	"context"
@@ -7,14 +7,12 @@ import (
 	"fmt"
 	. "gen/models"
 	"gen/registry"
-	"gen/services/cache"
 	"time"
 )
 
 type ArticleService struct {
-	SQLStore *SQLService `inject:""`
-
-	Cache *cache.CacheService `inject:""`
+	SQLStore *SQLService   `inject:""`
+	Cache    *CacheService `inject:""`
 }
 
 func init() {

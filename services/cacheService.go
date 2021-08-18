@@ -1,4 +1,4 @@
-package cache
+package services
 
 import (
 	"gen/config"

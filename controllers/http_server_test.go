@@ -3,9 +3,7 @@ package controllers
 import (
 	"gen/config"
 	"gen/models"
-	"gen/services/article"
-	"gen/services/cache"
-	"gen/services/user"
+	"gen/services"
 	. "github.com/smartystreets/goconvey/convey"
 	"log"
 	"net/http"
@@ -21,7 +19,7 @@ func getHttpServer() *HTTPServer {
 	if err != nil {
 		log.Fatalf("load ini file failed: %s", err)
 	}
-	cacheService := cache.CacheService{
+	cacheService := services.CacheService{
 		Cfg: cfg,
 	}
 	err = cacheService.Init()
@@ -35,8 +33,8 @@ func getHttpServer() *HTTPServer {
 	}
 	httpServer := &HTTPServer{
 		Cfg:            cfg,
-		ArticleService: &article.ArticleService{SQLStore: &sqlService, Cache: &cacheService},
-		UserService:    &user.UserService{},
+		ArticleService: &services.ArticleService{SQLStore: &sqlService, Cache: &cacheService},
+		UserService:    &services.UserService{},
 	}
 	err = httpServer.Init()
 	if err != nil {
