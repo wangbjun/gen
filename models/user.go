@@ -19,7 +19,7 @@ type User struct {
 
 type UserRegisterCommand struct {
 	Name       string `form:"name" json:"name" binding:"gte=1,lte=20"`
-	Email      string `form:"name" json:"email" binding:"required,email"`
+	Email      string `form:"email" json:"email" binding:"required,email"`
 	Password   string `form:"password" json:"password" binding:"required,gte=6"`
 	RePassword string `form:"re_password" json:"re_password" binding:"eqfield=Password"`
 }

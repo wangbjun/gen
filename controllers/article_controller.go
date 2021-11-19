@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"gen/models"
+	"gen/services"
 	"gen/utils/trans"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -9,7 +10,13 @@ import (
 )
 
 type articleController struct {
-	*HTTPServer
+	*Controller
+	*services.ArticleService
+}
+
+var ArticleController = articleController{
+	Controller:     BaseController,
+	ArticleService: &services.ArticleService{},
 }
 
 // Create 添加文章
@@ -29,7 +36,7 @@ func (r articleController) Create(ctx *gin.Context) {
 		r.Failed(ctx, NotLogin, "用户未登录")
 		return
 	}
-	if article, err := r.HTTPServer.ArticleService.Create(&param); err != nil {
+	if article, err := r.ArticleService.Create(&param); err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
 		r.Success(ctx, "添加文章成功", article)
@@ -59,7 +66,7 @@ func (r articleController) Update(ctx *gin.Context) {
 		r.Failed(ctx, NotLogin, "用户未登录")
 		return
 	}
-	if err := r.HTTPServer.ArticleService.Update(&param); err != nil {
+	if err := r.ArticleService.Update(&param); err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
 		r.Success(ctx, "修改文章成功", nil)
@@ -74,7 +81,7 @@ func (r articleController) GetById(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	article, err := r.HTTPServer.ArticleService.GetById(id)
+	article, err := r.ArticleService.GetById(id)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -89,7 +96,7 @@ func (r articleController) GetAll(ctx *gin.Context) {
 	if err != nil || page <= 0 {
 		page = 1
 	}
-	articles, err := r.HTTPServer.ArticleService.GetAll(page)
+	articles, err := r.ArticleService.GetAll(page)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -105,7 +112,7 @@ func (r articleController) Delete(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	err = r.HTTPServer.ArticleService.Delete(id, ctx.GetInt("userId"))
+	err = r.ArticleService.Delete(id, ctx.GetInt("userId"))
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -132,7 +139,7 @@ func (r articleController) AddComment(ctx *gin.Context) {
 		return
 	}
 	param.Id = id
-	err = r.HTTPServer.ArticleService.AddComment(&param)
+	err = r.ArticleService.AddComment(&param)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
