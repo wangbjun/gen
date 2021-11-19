@@ -1,26 +1,38 @@
 module gen
 
-go 1.13
+go 1.17
+
+require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-gonic/gin v1.7.7
+	github.com/go-playground/locales v0.14.0
+	github.com/go-playground/universal-translator v0.18.0
+	github.com/go-playground/validator/v10 v10.9.0
+	github.com/google/uuid v1.3.0
+	go.uber.org/zap v1.19.1
+	gopkg.in/ini.v1 v1.66.2
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
+	gorm.io/driver/mysql v1.2.1
+	gorm.io/gorm v1.22.4
+)
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
-	github.com/facebookgo/inject v0.0.0-20180706035515-f23751cae28b
-	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/facebookgo/structtag v0.0.0-20150214074306-217e25fb9691 // indirect
-	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
-	github.com/gin-gonic/gin v1.7.2
-	github.com/go-playground/locales v0.13.0
-	github.com/go-playground/universal-translator v0.17.0
-	github.com/go-playground/validator/v10 v10.6.1
-	github.com/go-redis/redis/v8 v8.10.0
-	github.com/google/uuid v1.1.1
-	github.com/smartystreets/goconvey v1.6.4
-	go.uber.org/zap v1.17.0
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	gopkg.in/ini.v1 v1.51.0
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gorm.io/driver/mysql v1.1.1
-	gorm.io/gorm v1.21.11
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.3 // indirect
+	github.com/json-iterator/go v1.1.9 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
+	github.com/ugorji/go/codec v1.1.7 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
+	golang.org/x/text v0.3.6 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )

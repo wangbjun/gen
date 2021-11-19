@@ -2,75 +2,105 @@ package config
 
 import (
 	"fmt"
-	"gen/log"
 	"gopkg.in/ini.v1"
 	"os"
+	"strings"
 )
 
 const (
-	Dev  = "development"
-	Prod = "production"
+	Dev  = "dev"
+	Prod = "prod"
 	Test = "test"
 )
 
-var (
-	Config *Cfg
-)
+var Conf *AppConfig
 
-type Cfg struct {
+type AppConfig struct {
 	File     string
-	Raw      *ini.File
 	Env      string
-	HttpAddr string
 	HttpPort string
+	LogMode  string
+	LogFile  string
+	LogLevel string
+
+	Raw      *ini.File
+	DBConfig []DBConfig
 }
 
-func NewConfig(file string) *Cfg {
-	if Config != nil {
-		return Config
-	}
-	Config = &Cfg{
+type DBConfig struct {
+	Name        string
+	Dsn         string
+	MaxIdleConn int
+	MaxOpenConn int
+}
+
+// Load 加载ini配置文件内容
+func Load(file string) (*AppConfig, error) {
+	Conf = &AppConfig{
 		File:     file,
 		Raw:      ini.Empty(),
 		Env:      Dev,
-		HttpAddr: "127.0.0.1",
 		HttpPort: "8080",
 	}
-	return Config
-}
-
-func (cfg *Cfg) Load() error {
-	if _, err := os.Stat(cfg.File); os.IsNotExist(err) {
-		return fmt.Errorf("cfg file [%s] not existed", cfg.File)
+	if _, err := os.Stat(Conf.File); os.IsNotExist(err) {
+		return nil, fmt.Errorf("cfg file [%s] not existed", Conf.File)
 	}
-	conf, err := ini.Load(cfg.File)
+	conf, err := ini.Load(Conf.File)
 	if err != nil {
-		return fmt.Errorf("load file [%s] failed", cfg.File)
+		return nil, fmt.Errorf("load file [%s] failed", Conf.File)
 	}
-	cfg.Raw = conf
-	cfg.readAppCfg()
-
-	log.Init(cfg.Raw) // configure log
-
-	return nil
+	Conf.Raw = conf
+	Conf.loadAppCfg()
+	Conf.loadDBCfg()
+	return Conf, nil
 }
 
-// readAppCfg 读取APP配置
-func (cfg *Cfg) readAppCfg() {
-	appConfig := cfg.Raw.Section("app")
+func (cfg *AppConfig) loadAppCfg() {
+	section := cfg.Raw.Section("app")
 
-	env := appConfig.Key("env").String()
+	env := section.Key("env").String()
 	if env != "" {
 		cfg.Env = env
 	}
-
-	httpPort := appConfig.Key("http_port").String()
+	httpPort := section.Key("http_port").String()
 	if httpPort != "" {
 		cfg.HttpPort = httpPort
 	}
-
-	httpAddr := appConfig.Key("http_addr").String()
-	if httpAddr != "" {
-		cfg.HttpAddr = httpAddr
+	logMode := section.Key("log_mode").String()
+	if logMode != "" {
+		cfg.LogMode = logMode
 	}
+	logFile := section.Key("log_file").String()
+	if logFile != "" {
+		cfg.LogFile = logFile
+	}
+	logLevel := section.Key("log_level").String()
+	if logLevel != "" {
+		cfg.LogLevel = logLevel
+	}
+}
+
+func (cfg *AppConfig) loadDBCfg() {
+	section := cfg.Raw.Section("db")
+	cfg.DBConfig = []DBConfig{
+		{
+			Name:        "default",
+			Dsn:         section.Key("dsn").String(),
+			MaxIdleConn: section.Key("max_idle_conn").MustInt(10),
+			MaxOpenConn: section.Key("max_open_conn").MustInt(20),
+		},
+	}
+	sections := cfg.Raw.Section("db").ChildSections()
+	for _, section := range sections {
+		cfg.DBConfig = append(cfg.DBConfig, DBConfig{
+			Name:        strings.TrimLeft(section.Name(), "db."),
+			Dsn:         section.Key("dsn").String(),
+			MaxIdleConn: section.Key("max_idle_conn").MustInt(10),
+			MaxOpenConn: section.Key("max_open_conn").MustInt(20),
+		})
+	}
+}
+
+func (cfg *AppConfig) IsDevEnv() bool {
+	return cfg.Env == "dev"
 }

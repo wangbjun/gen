@@ -4,13 +4,20 @@ import (
 	"fmt"
 	"gen/log"
 	"gen/models"
+	"gen/services"
 	"gen/utils/trans"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
 type userController struct {
-	*HTTPServer
+	*Controller
+	*services.UserService
+}
+
+var UserController = userController{
+	Controller:  BaseController,
+	UserService: services.NewUserService(),
 }
 
 // Register 用户注册
@@ -25,7 +32,7 @@ func (r userController) Register(ctx *gin.Context) {
 		}
 		return
 	}
-	token, err := r.HTTPServer.UserService.Register(&form)
+	token, err := r.UserService.Register(&form)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -46,7 +53,7 @@ func (r userController) Login(ctx *gin.Context) {
 		}
 		return
 	}
-	token, err := r.HTTPServer.UserService.Login(&form)
+	token, err := r.UserService.Login(&form)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {

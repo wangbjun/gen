@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	. "gen/models"
-	"gen/registry"
 	"gen/utils"
 	"github.com/dgrijalva/jwt-go"
 	"gorm.io/gorm"
@@ -21,12 +20,8 @@ var (
 
 type UserService struct{}
 
-func init() {
-	registry.RegisterService(&UserService{})
-}
-
-func (r UserService) Init() error {
-	return nil
+func NewUserService() *UserService {
+	return &UserService{}
 }
 
 func (r UserService) Register(param *UserRegisterCommand) (string, error) {

@@ -5,6 +5,41 @@ import (
 	"time"
 )
 
+type Article struct {
+	Id        int        `json:"id" gorm:"primaryKey"`
+	Title     string     `json:"title" binding:"min=1,max=100"`
+	Content   string     `json:"content" binding:"required"`
+	UserId    int        `json:"user_id" binding:"required"`
+	ViewNum   int        `json:"view_num"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+}
+
+func (Article) TableName() string {
+	return "articles"
+}
+
+type CreateArticleCommand struct {
+	Id      int
+	UserId  int
+	Title   string `form:"title" json:"title" binding:"gt=1,lt=100"`
+	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
+}
+
+type UpdateArticleCommand struct {
+	Id      int
+	UserId  int
+	Title   string `form:"title" json:"title" binding:"gt=1,lt=100"`
+	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
+}
+
+type CreateArticleCommentCommand struct {
+	UserId  int
+	Id      int    `form:"id" json:"id"`
+	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
+}
+
 func CreateArticle(param *CreateArticleCommand) (*Article, error) {
 	article := Article{
 		Title:   param.Title,
@@ -87,35 +122,4 @@ func AddViewNum(id int) error {
 		return err
 	}
 	return nil
-}
-
-type Article struct {
-	Id        int        `json:"id" gorm:"primaryKey"`
-	Title     string     `json:"title" binding:"min=1,max=100"`
-	Content   string     `json:"content" binding:"required"`
-	UserId    int        `json:"user_id" binding:"required"`
-	ViewNum   int        `json:"view_num"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
-}
-
-type CreateArticleCommand struct {
-	Id      int
-	UserId  int
-	Title   string `form:"title" json:"title" binding:"gt=1,lt=100"`
-	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
-}
-
-type UpdateArticleCommand struct {
-	Id      int
-	UserId  int
-	Title   string `form:"title" json:"title" binding:"gt=1,lt=100"`
-	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
-}
-
-type CreateArticleCommentCommand struct {
-	UserId  int
-	Id      int    `form:"id" json:"id"`
-	Content string `form:"content" json:"content" binding:"gt=1,lt=2000"`
 }
