@@ -11,6 +11,7 @@ func RegisterRoutes(server *gin.Engine) {
 	server.GET("/", controllers.BaseController.Index)
 	r := server.Group("/api")
 	{
+		r.Use(middleware.AddTraceId()) //添加全局的traceId
 		v1 := r.Group("/v1")
 		{
 			articleCtrl := controllers.ArticleController

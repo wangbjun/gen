@@ -1,11 +1,10 @@
 package controllers
 
 import (
-	"fmt"
-	"gen/log"
 	"gen/models"
 	"gen/services"
 	"gen/utils/trans"
+	"gen/zlog"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -66,7 +65,7 @@ func (r userController) Login(ctx *gin.Context) {
 func (r userController) Logout(ctx *gin.Context) {
 	token := ctx.GetHeader("Authorization")
 
-	log.Debug(fmt.Sprintf("add token into blacklist, token: %s", token))
+	zlog.Debug("add token into blacklist, token: %s", token)
 
 	r.Success(ctx, "ok", "")
 }

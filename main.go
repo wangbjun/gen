@@ -6,9 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"gen/config"
-	"gen/log"
 	"gen/models"
 	"gen/router"
+	"gen/zlog"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -28,51 +28,56 @@ func main() {
 	}
 
 	// 初始化日志
-	log.Init(cfg)
-	defer func() {
-		if err := log.Logger.Sync(); err != nil {
-			fmt.Printf("Failed to close log: %s\n", err)
-		}
-	}()
+	zlog.Init(cfg)
+	defer zlog.GetLogger().Sync()
 
 	// 初始化数据库
-	err = models.InitDB(cfg)
+	err = models.Init(cfg)
 	if err != nil {
-		panic(fmt.Sprintf("init db failed, error: %s", err))
+		zlog.Panic("Init db failed, error: %s", err)
 	}
 
 	// 启动Web服务
-	fmt.Println("Server starting...")
+	zlog.Info("Server starting...")
 	err = startServer(cfg)
 	if err != nil {
-		panic(fmt.Sprintf("Server started failed: %s", err))
+		zlog.Panic("Server started failed: %s", err)
 	}
 }
 
 func startServer(cfg *config.AppConfig) error {
 	server := &http.Server{
 		Addr:    ":" + cfg.HttpPort,
-		Handler: initEngine(cfg),
+		Handler: getEngine(cfg),
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	go listenToSystemSignals(cancel)
-
+	go func(ctxFunc context.CancelFunc) {
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+		for {
+			select {
+			case <-signalChan:
+				ctxFunc()
+				return
+			}
+		}
+	}(cancel)
 	go func() {
 		<-ctx.Done()
 		if err := server.Shutdown(context.Background()); err != nil {
-			log.Error(fmt.Sprintf("Failed to shutdown server: %s", err))
+			zlog.Error("Failed to shutdown server: %s", err)
 		}
 	}()
-	log.Debug("Server started success")
+	zlog.Debug("Server started success")
 	err := server.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		log.Debug("Server was shutdown gracefully")
+		zlog.Debug("Server was shutdown gracefully")
 		return nil
 	}
 	return err
 }
 
-func initEngine(cfg *config.AppConfig) *gin.Engine {
+func getEngine(cfg *config.AppConfig) *gin.Engine {
 	gin.SetMode(func() string {
 		if cfg.IsDevEnv() {
 			return gin.DebugMode
@@ -88,16 +93,4 @@ func initEngine(cfg *config.AppConfig) *gin.Engine {
 	}))
 	router.RegisterRoutes(engine)
 	return engine
-}
-
-func listenToSystemSignals(cancel context.CancelFunc) {
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
-	for {
-		select {
-		case <-signalChan:
-			cancel()
-			return
-		}
-	}
 }

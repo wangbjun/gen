@@ -16,12 +16,12 @@ const (
 var Conf *AppConfig
 
 type AppConfig struct {
-	File     string
-	Env      string
-	HttpPort string
-	LogMode  string
-	LogFile  string
-	LogLevel string
+	File       string
+	Env        string
+	HttpPort   string
+	LogFile    string
+	LogConsole bool
+	LogLevel   string
 
 	Raw      *ini.File
 	DBConfig []DBConfig
@@ -34,7 +34,7 @@ type DBConfig struct {
 	MaxOpenConn int
 }
 
-// Load 加载ini配置文件内容
+// Load 加载app.ini配置文件
 func Load(file string) (*AppConfig, error) {
 	Conf = &AppConfig{
 		File:     file,
@@ -57,7 +57,6 @@ func Load(file string) (*AppConfig, error) {
 
 func (cfg *AppConfig) loadAppCfg() {
 	section := cfg.Raw.Section("app")
-
 	env := section.Key("env").String()
 	if env != "" {
 		cfg.Env = env
@@ -66,13 +65,12 @@ func (cfg *AppConfig) loadAppCfg() {
 	if httpPort != "" {
 		cfg.HttpPort = httpPort
 	}
-	logMode := section.Key("log_mode").String()
-	if logMode != "" {
-		cfg.LogMode = logMode
-	}
 	logFile := section.Key("log_file").String()
 	if logFile != "" {
 		cfg.LogFile = logFile
+	}
+	if section.Key("log_console").String() == "true" {
+		cfg.LogConsole = true
 	}
 	logLevel := section.Key("log_level").String()
 	if logLevel != "" {

@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"gen/config"
-	"gen/log"
+	"gen/zlog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -24,8 +24,8 @@ func DB(dbName ...string) *gorm.DB {
 	return db
 }
 
-// InitDB 初始化数据库
-func InitDB(cfg *config.AppConfig) error {
+// Init 初始化数据库连接
+func Init(cfg *config.AppConfig) error {
 	conns = make(map[string]*gorm.DB)
 	for _, v := range cfg.DBConfig {
 		conn, err := openConn(v.Dsn, v.MaxIdleConn, v.MaxOpenConn)
@@ -41,11 +41,8 @@ func InitDB(cfg *config.AppConfig) error {
 }
 
 func openConn(dsn string, idle, open int) (*gorm.DB, error) {
-	newLogger := logger.New(Writer{}, logger.Config{
-		SlowThreshold:             500 * time.Millisecond,
-		LogLevel:                  logger.Info,
-		IgnoreRecordNotFoundError: true,
-		Colorful:                  false})
+	newLogger := logger.New(Writer{}, logger.Config{SlowThreshold: 500 * time.Millisecond,
+		LogLevel: logger.Info, IgnoreRecordNotFoundError: true, Colorful: false})
 	openDB, err := gorm.Open(mysql.New(mysql.Config{DSN: dsn}), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		return nil, err
@@ -63,5 +60,5 @@ func openConn(dsn string, idle, open int) (*gorm.DB, error) {
 type Writer struct{}
 
 func (w Writer) Printf(format string, args ...interface{}) {
-	log.Debug(fmt.Sprintf(format, args...))
+	zlog.Debug(format, args...)
 }
