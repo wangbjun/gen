@@ -3,7 +3,6 @@ package controllers
 import (
 	"gen/models"
 	"gen/services"
-	"gen/utils/trans"
 	"gen/zlog"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -25,7 +24,7 @@ func (r userController) Register(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, trans.Translate(e))
+			r.Failed(ctx, ParamError, e.Error())
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}
@@ -46,7 +45,7 @@ func (r userController) Login(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&form)
 	if err != nil {
 		if e, ok := err.(validator.ValidationErrors); ok {
-			r.Failed(ctx, ParamError, trans.Translate(e))
+			r.Failed(ctx, ParamError, e.Error())
 		} else {
 			r.Failed(ctx, Failed, "请求错误")
 		}

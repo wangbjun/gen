@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 )
 
@@ -33,13 +32,11 @@ func Init(cfg *config.AppConfig) {
 		EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05"),
 		EncodeDuration: zapcore.StringDurationEncoder, EncodeCaller: zapcore.ShortCallerEncoder,
 	}
-	writer := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   cfg.LogFile,
-		MaxSize:    1024,
-		MaxBackups: 10,
-		MaxAge:     30,
-		LocalTime:  true,
-	})
+	file, err := os.OpenFile(cfg.LogFile, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	writer := zapcore.AddSync(file)
 	var cores = []zapcore.Core{zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(writer), level)}
 	if cfg.LogConsole {
 		cores = append(cores, zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(os.Stdout), level))

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	. "gen/models"
 	"gen/utils"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"time"
 )
