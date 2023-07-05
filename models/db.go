@@ -1,10 +1,10 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"gen/config"
 	"gen/log"
-	"gopkg.in/ini.v1"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,26 +12,26 @@ import (
 )
 
 var (
-	db    *gorm.DB
-	conns = make(map[string]*gorm.DB)
+	connPool = make(map[string]*gorm.DB)
 )
 
-func NewDB(dbName ...string) *gorm.DB {
+// NewOrm 默认返回default数据库连接
+func NewOrm(ctx context.Context, dbName ...string) *gorm.DB {
+	conn := connPool["default"]
 	if len(dbName) > 0 {
-		if conn, ok := conns[dbName[0]]; ok {
-			return conn
+		if cn, ok := connPool[dbName[0]]; ok {
+			conn = cn
 		}
 	}
-	return db
+	return conn.WithContext(ctx)
 }
 
 // Init 初始化数据库连接
 func Init(cfg *config.App) error {
-	sections := []*ini.Section{cfg.Raw.Section("db")}
-	sections = append(sections, cfg.Raw.Section("db").ChildSections()...)
+	sections := cfg.Raw.Section("db").ChildSections()
 	for _, v := range sections {
 		var (
-			name        = strings.TrimLeft(v.Name(), "db.")
+			name        = strings.TrimPrefix(v.Name(), "db.")
 			dsn         = v.Key("dsn").String()
 			maxIdleConn = v.Key("max_idle_conn").MustInt(10)
 			maxOpenConn = v.Key("max_open_conn").MustInt(30)
@@ -40,11 +40,7 @@ func Init(cfg *config.App) error {
 		if err != nil {
 			return fmt.Errorf("open db conn failed, error: %s", err.Error())
 		}
-		if name == "" {
-			db = conn
-		} else {
-			conns[name] = conn
-		}
+		connPool[name] = conn
 	}
 	return nil
 }

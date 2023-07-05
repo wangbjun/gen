@@ -23,15 +23,10 @@ func (r articleController) Create(ctx *gin.Context) {
 	var param models.CreateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
-		r.Failed(ctx, ParamError, err.Error())
+		r.Failed(ctx, ParamError, translate(err))
 		return
 	}
-	param.UserId = ctx.GetInt("userId")
-	if param.UserId <= 0 {
-		r.Failed(ctx, NotLogin, "用户未登录")
-		return
-	}
-	if article, err := r.ArticleService.Create(&param); err != nil {
+	if article, err := r.ArticleService.Create(ctx, &param); err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
 		r.Success(ctx, "添加文章成功", article)
@@ -44,7 +39,7 @@ func (r articleController) Update(ctx *gin.Context) {
 	var param models.UpdateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
-		r.Failed(ctx, Failed, "请求错误")
+		r.Failed(ctx, Failed, translate(err))
 		return
 	}
 	param.Id, err = strconv.Atoi(ctx.Param("id"))
@@ -52,12 +47,7 @@ func (r articleController) Update(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	param.UserId = ctx.GetInt("userId")
-	if param.UserId <= 0 {
-		r.Failed(ctx, NotLogin, "用户未登录")
-		return
-	}
-	if err := r.ArticleService.Update(&param); err != nil {
+	if err := r.ArticleService.Update(ctx, &param); err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
 		r.Success(ctx, "修改文章成功", nil)
@@ -72,7 +62,7 @@ func (r articleController) GetById(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	article, err := r.ArticleService.GetById(id)
+	article, err := r.ArticleService.GetById(ctx, id)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -83,16 +73,18 @@ func (r articleController) GetById(ctx *gin.Context) {
 
 // GetAll 文章列表
 func (r articleController) GetAll(ctx *gin.Context) {
-	page, err := strconv.Atoi(ctx.Param("page"))
-	if err != nil || page <= 0 {
-		page = 1
-	}
+	r.ParsePage(ctx)
 	log.WithCtx(ctx).Info("GetAll Articles")
-	articles, err := r.ArticleService.GetAll(ctx, page)
+	articles, totalCount, err := r.ArticleService.GetAll(ctx, r.Page, r.PageSize)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
-		r.Success(ctx, "ok", articles)
+		r.Success(ctx, "ok", Pagination{
+			List:       articles,
+			Page:       r.Page,
+			PageSize:   r.PageSize,
+			TotalCount: totalCount,
+		})
 	}
 	return
 }
@@ -104,7 +96,7 @@ func (r articleController) Delete(ctx *gin.Context) {
 		r.Failed(ctx, ParamError, "id不能为空")
 		return
 	}
-	err = r.ArticleService.Delete(id, ctx.GetInt("userId"))
+	err = r.ArticleService.Delete(ctx, id)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {
@@ -127,7 +119,7 @@ func (r articleController) AddComment(ctx *gin.Context) {
 		return
 	}
 	param.Id = id
-	err = r.ArticleService.AddComment(&param)
+	err = r.ArticleService.AddComment(ctx, &param)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
 	} else {

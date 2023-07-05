@@ -7,11 +7,11 @@ import (
 
 func AddTrace() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		traceId := context.Request.Header.Get("traceId")
+		traceId := context.Request.Header.Get("trace_id")
 		if traceId == "" {
 			traceId = uuid.NewString()
 		}
-		context.Set("traceId", traceId)
+		context.Set("trace_id", traceId)
 		context.Next()
 	}
 }
