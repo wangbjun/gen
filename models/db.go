@@ -28,7 +28,7 @@ func NewOrm(ctx context.Context, dbName ...string) *gorm.DB {
 
 // Init 初始化数据库连接
 func Init(cfg *config.App) error {
-	sections := cfg.Raw.Section("db").ChildSections()
+	sections := cfg.Section("db").ChildSections()
 	for _, v := range sections {
 		var (
 			name        = strings.TrimPrefix(v.Name(), "db.")

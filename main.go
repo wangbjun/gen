@@ -90,7 +90,7 @@ func getEngine(cfg *config.App) *gin.Engine {
 	}())
 	engine := gin.New()
 	engine.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
-		log.WithCtx(c).Error("server panic: %s", err)
+		log.WithCtx(c).Error(fmt.Sprintf("server panic: %s", err))
 		c.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"code": 500,
 			"msg":  "服务器内部错误，请稍后再试！",

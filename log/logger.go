@@ -80,9 +80,9 @@ func Panic(format string, args ...interface{}) {
 	zapLogger.Panic(fmt.Sprintf(format, args...))
 }
 
-func (r Logger) Debug(format string, args ...interface{}) {
+func (r Logger) Debug(msg string, fields ...zap.Field) {
 	traceId, _ := r.Value("trace_id").(string)
-	r.Logger.With(zap.String("trace_id", traceId)).Debug(fmt.Sprintf(format, args...))
+	r.Logger.With(append(fields, zap.String("trace_id", traceId))...).Debug(msg)
 }
 
 func (r Logger) Info(msg string, fields ...zap.Field) {
@@ -90,17 +90,17 @@ func (r Logger) Info(msg string, fields ...zap.Field) {
 	r.Logger.With(append(fields, zap.String("trace_id", traceId))...).Info(msg)
 }
 
-func (r Logger) Warn(format string, args ...interface{}) {
+func (r Logger) Warn(msg string, fields ...zap.Field) {
 	traceId, _ := r.Value("trace_id").(string)
-	r.Logger.With(zap.String("trace_id", traceId)).Warn(fmt.Sprintf(format, args...))
+	r.Logger.With(append(fields, zap.String("trace_id", traceId))...).Warn(msg)
 }
 
-func (r Logger) Error(format string, args ...interface{}) {
+func (r Logger) Error(msg string, fields ...zap.Field) {
 	traceId, _ := r.Value("trace_id").(string)
-	r.Logger.With(zap.String("trace_id", traceId)).Error(fmt.Sprintf(format, args...))
+	r.Logger.With(append(fields, zap.String("trace_id", traceId))...).Error(msg)
 }
 
-func (r Logger) Panic(format string, args ...interface{}) {
+func (r Logger) Panic(msg string, fields ...zap.Field) {
 	traceId, _ := r.Value("trace_id").(string)
-	r.Logger.With(zap.String("trace_id", traceId)).Panic(fmt.Sprintf(format, args...))
+	r.Logger.With(append(fields, zap.String("trace_id", traceId))...).Panic(msg)
 }

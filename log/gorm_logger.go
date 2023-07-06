@@ -54,14 +54,14 @@ func (l gormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 // Warn print warn messages
 func (l gormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gl.Warn {
-		WithCtx(ctx).Warn(l.warnStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
+		WithCtx(ctx).Warn(fmt.Sprintf(l.warnStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...))
 	}
 }
 
 // Error print error messages
 func (l gormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gl.Error {
-		WithCtx(ctx).Error(l.errStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...)
+		WithCtx(ctx).Error(fmt.Sprintf(l.errStr+msg, append([]interface{}{utils.FileWithLineNum()}, data...)...))
 	}
 }
 

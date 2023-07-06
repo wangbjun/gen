@@ -15,39 +15,36 @@ const (
 var cfg *App
 
 type App struct {
-	File       string
 	Env        string
 	HttpPort   string
 	LogFile    string
 	LogConsole bool
 	LogLevel   string
 
-	Raw *ini.File
+	*ini.File
 }
 
-type DBConfig struct {
-	Name        string
-	Dsn         string
-	MaxIdleConn int
-	MaxOpenConn int
+func Get() *App {
+	return cfg
 }
 
 // Init 加载app.ini配置文件
 func Init(file string) (*App, error) {
 	cfg = &App{
-		File:     file,
-		Raw:      ini.Empty(),
-		Env:      Dev,
-		HttpPort: "8080",
+		Env:        Dev,
+		HttpPort:   "8080",
+		LogConsole: true,
+		LogLevel:   "info",
+		File:       ini.Empty(),
 	}
-	if _, err := os.Stat(cfg.File); os.IsNotExist(err) {
-		return nil, fmt.Errorf("config file [%s] not existed", cfg.File)
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return nil, fmt.Errorf("cfg file [%s] not existed", file)
 	}
-	conf, err := ini.Load(cfg.File)
+	conf, err := ini.Load(file)
 	if err != nil {
-		return nil, fmt.Errorf("load file [%s] failed", cfg.File)
+		return nil, fmt.Errorf("load file [%s] failed", file)
 	}
-	cfg.Raw = conf
+	cfg.File = conf
 	cfg.loadAppCfg()
 	return cfg, nil
 }
@@ -57,7 +54,7 @@ func (cfg *App) IsDevEnv() bool {
 }
 
 func (cfg *App) loadAppCfg() {
-	section := cfg.Raw.Section("app")
+	section := cfg.Section("app")
 	env := section.Key("env").String()
 	if env != "" {
 		cfg.Env = env

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gen/config"
 	"gen/log"
 	"gen/models"
 	"gen/services"
@@ -74,7 +75,7 @@ func (r articleController) GetById(ctx *gin.Context) {
 // GetAll 文章列表
 func (r articleController) GetAll(ctx *gin.Context) {
 	r.ParsePage(ctx)
-	log.WithCtx(ctx).Info("GetAll Articles")
+	log.WithCtx(ctx).Info("GetAll Articles: " + config.Get().Env)
 	articles, totalCount, err := r.ArticleService.GetAll(ctx, r.Page, r.PageSize)
 	if err != nil {
 		r.Failed(ctx, Failed, err.Error())
