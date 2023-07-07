@@ -1,27 +1,27 @@
-package controllers
+package controller
 
 import (
 	"gen/config"
 	"gen/log"
-	"gen/models"
-	"gen/services"
+	"gen/model"
+	"gen/service"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
 
 type articleController struct {
 	*Controller
-	*services.ArticleService
+	*service.ArticleService
 }
 
 var ArticleController = articleController{
 	Controller:     BaseController,
-	ArticleService: services.NewArticleService(),
+	ArticleService: service.NewArticleService(),
 }
 
 // Create 添加文章
 func (r articleController) Create(ctx *gin.Context) {
-	var param models.CreateArticleCommand
+	var param model.CreateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		r.Failed(ctx, ParamError, translate(err))
@@ -37,7 +37,7 @@ func (r articleController) Create(ctx *gin.Context) {
 
 // Update 修改文章
 func (r articleController) Update(ctx *gin.Context) {
-	var param models.UpdateArticleCommand
+	var param model.UpdateArticleCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		r.Failed(ctx, Failed, translate(err))
@@ -108,7 +108,7 @@ func (r articleController) Delete(ctx *gin.Context) {
 
 // AddComment 新增评论
 func (r articleController) AddComment(ctx *gin.Context) {
-	var param models.CreateArticleCommentCommand
+	var param model.CreateArticleCommentCommand
 	err := ctx.ShouldBindJSON(&param)
 	if err != nil {
 		r.Failed(ctx, Failed, "请求错误")

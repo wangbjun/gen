@@ -1,4 +1,4 @@
-package utils
+package util
 
 const (
 	TimeFormatYmd    = "2006-01-02"

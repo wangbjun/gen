@@ -8,7 +8,7 @@ import (
 	"gen/config"
 	"gen/log"
 	"gen/middleware"
-	"gen/models"
+	"gen/model"
 	"gen/router"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -36,7 +36,7 @@ func main() {
 	defer log.Close()
 
 	// 初始化数据库
-	err = models.Init(cfg)
+	err = model.Init(cfg)
 	if err != nil {
 		log.Panic("Init db failed, error: %s", err)
 	}

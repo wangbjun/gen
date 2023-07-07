@@ -1,10 +1,10 @@
-package services
+package service
 
 import (
 	"context"
 	"fmt"
 	"gen/log"
-	. "gen/models"
+	. "gen/model"
 )
 
 type ArticleService struct{}

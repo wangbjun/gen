@@ -1,15 +1,15 @@
 package router
 
 import (
-	"gen/controllers"
+	"gen/controller"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoutes(server *gin.Engine) {
-	server.GET("/", controllers.BaseController.Index)
+	server.GET("/", controller.BaseController.Index)
 
 	v1 := server.Group("/v1")
-	articleCtrl := controllers.ArticleController
+	articleCtrl := controller.ArticleController
 	{
 		v1.GET("/articles", articleCtrl.GetAll)        //所有文章
 		v1.POST("/articles", articleCtrl.Create)       //添加文章
