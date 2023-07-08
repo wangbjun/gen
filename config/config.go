@@ -14,6 +14,10 @@ const (
 
 var cfg *App
 
+func Get() *App {
+	return cfg
+}
+
 type App struct {
 	Env        string
 	HttpPort   string
@@ -22,10 +26,6 @@ type App struct {
 	LogLevel   string
 
 	*ini.File
-}
-
-func Get() *App {
-	return cfg
 }
 
 // Init 加载app.ini配置文件
