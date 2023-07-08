@@ -67,17 +67,17 @@
 var cfg *App
 
 func Get() *App {
-	return cfg
+    return cfg
 }
 
 type App struct {
-	Env        string
-	HttpPort   string
-	LogFile    string
-	LogConsole bool
-	LogLevel   string
-
-	*ini.File
+    Env        string
+    HttpPort   string
+    LogFile    string
+    LogConsole bool
+    LogLevel   string
+    
+    *ini.File
 }
 ```
 另外，推荐不同环境采用不同的配置，比如app_dev.ini就是开发配置，可以通过-conf指定配置文件，默认会使用app.ini配置。
