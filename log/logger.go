@@ -61,7 +61,11 @@ func Init(cfg *config.App) error {
 }
 
 func Debug(format string, args ...interface{}) {
-	zapLogger.Info(fmt.Sprintf(format, args...))
+	zapLogger.Debug(fmt.Sprintf(format, args...))
+}
+
+func Println(args ...interface{}) {
+	zapLogger.Debug(fmt.Sprintln(args...))
 }
 
 func Info(format string, args ...interface{}) {
